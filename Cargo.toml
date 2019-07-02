@@ -1,0 +1,12 @@
+[package]
+name = "yat"
+version = "0.1.0"
+authors = ["drvog"]
+edition = "2018"
+
+[dependencies]
+termion = "1.5.3"
+dirs = "1.0"
+log = "0.4.6"
+fern = "0.5.8"
+chrono = "0.4.7"
