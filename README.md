@@ -1,5 +1,7 @@
 # *yat* -- yet another todo-list
-A simple terminal todo-list manager written in Rust. The terminal user interface (TUI) is built around the excellent [termion](https://crates.io/crates/termion) crate.
+>A simple terminal todo-list manager written in Rust. 
+
+The terminal user interface (TUI) is built around the excellent [termion](https://crates.io/crates/termion) crate.
 
 **Disclaimer**: this is a work in progress! When it reaches a usable state hopefully it will be published on crates.io.
 
@@ -31,9 +33,15 @@ Once running, **yat** uses the following (vim-*ish*) key bindings:
 
 The user interface shows 4 panels: parent task, tasks, sub-tasks and selection. The tasks panel is the main panel, which allows you to navigate between tasks.
 
+![Screenshot](screenshot.png)
+
 Usually **yat** will save to $HOME/.todo/save.txt, which will be created the first time it runs. You can specify a custom file to load (or create) by passing it as a first argument on the command line.
 
 ## To Do
 1. Loading: although loading from a save file is implemented, the parsing functionality can be made more robust.
 2. Configuration: user configuration e.g. custom colour scheme, keybindings etc.
 3. Clean-up: general code clean-up and refactoring, including more extensive commenting.
+
+## License
+
+[MIT License](LICENSE)
