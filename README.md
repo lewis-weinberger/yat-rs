@@ -7,13 +7,16 @@ The terminal user interface (TUI) is built around the excellent [termion](https:
 
 ## Installation
 Requires an installation of [Rust](https://www.rust-lang.org/tools/install). Recommended build profile is release:
-
-    cargo build --release
+    
+    $ curl https://sh.rustup.rs -sSf | sh
+    $ git clone https://github.com/drvog/yat-rs 
+    $ cd yat-rs
+    $ cargo run --release
 
 ## Usage
 Can be run with cargo from the root of the directory. Logging is provided by the nifty [fern](https://crates.io/crates/fern) and [log](https://crates.io/crates/log) crates; this will print to stderr, but these will be missed behind the TUI, so it might be useful to redirect them to a file:
 
-    cargo run --release 2>err.log
+    $ cargo run --release 2>err.log
 
 Once running, **yat** uses the following (vim-*ish*) key bindings:
 
@@ -22,6 +25,7 @@ Once running, **yat** uses the following (vim-*ish*) key bindings:
 |a        | add new task                |
 |e        | edit selected task          |
 |d        | delete selected task        |
+|m        | move selected task          |
 |w        | save todo list to file      |
 |q        | quit                        |
 |k, Up    | move selection up           |
@@ -35,7 +39,26 @@ The user interface shows 4 panels: parent task, tasks, sub-tasks and selection. 
 
 ![Screenshot](screenshot.png)
 
-Usually **yat** will save to $HOME/.todo/save.txt, which will be created the first time it runs. You can specify a custom file to load (or create) by passing it as a first argument on the command line.
+The layout of the task on the panel is as follows:
+
+    > [ ] todo
+    │  │   │         
+    │  │   └─ this is the content of the task (colour indicates priority).
+    │  │
+    │  └─ this shows task completion: [X] = completed, [ ] = not completed.
+    │
+    └─ this indicates that this task is currently selected.
+
+Usually **yat** will save to $HOME/.todo/save.txt, which will be created the first time it runs. You can specify a custom file to load (or create) by passing it as a first argument on the command line. The formatting of the save file is as follows:
+
+    [ ] ( ) todo
+     │   │   │         
+     │   │   └─ this is the content of the task.
+     │   │
+     │   └─ this shows task priority: ( ) = no priority, (C) = low priority,
+     │      (B) = medium priority, (A) = high priority.
+     │
+     └─ this shows task completion: [X] = completed, [ ] = not completed. 
 
 ## To Do
 1. Loading: although loading from a save file is implemented, the parsing functionality can be made more robust.

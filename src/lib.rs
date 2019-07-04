@@ -210,6 +210,8 @@ impl View {
                 Some(Key::Char('e')) => self.edit_task(),
                 Some(Key::Char('d')) => self.remove_task(),
                 Some(Key::Char('l')) => self.new_focus(),
+                Some(Key::Char('u')) => self.move_task(true),
+                Some(Key::Char('n')) => self.move_task(false),
                 Some(Key::Char('\n')) => self.new_focus(),
                 Some(Key::Char(' ')) => self.complete_task(),
                 Some(Key::Up) => self.move_selection(true),
@@ -311,6 +313,8 @@ impl View {
         self.window.hide_cursor();
 
         let (ymax, xmax) = self.window.get_max_yx();
+        
+        // Panels
         let mut path = self.current_task.borrow().task.clone();
         self.current_task.borrow().task_path(&mut path);
         self.window.mvprintw(1, 1, &path);
@@ -330,14 +334,18 @@ impl View {
         self.window.colour_on(color::Cyan, color::Reset);
         match self.selection {
             Some(index) => {
-                self.window.mvprintw(4 + index, 1, ">");
-                self.window.mvprintw(
-                    ymax - 2,
-                    2,
-                    &self.current_task.borrow().sub_tasks[index].borrow().task,
-                );
-                ()
-            }
+                if index > self.current_task.borrow().sub_tasks.len() - 1 {
+                    warn!("Index larger than it should be.");
+                    self.selection = None;
+                } else {
+                    self.window.mvprintw(4 + index, 1, ">");
+                    self.window.mvprintw(
+                        ymax - 2,
+                        2,
+                        &self.current_task.borrow().sub_tasks[index].borrow().task,
+                    );
+                }
+            } 
             None => (),
         };
         self.window.colour_off();
@@ -468,6 +476,22 @@ impl View {
                 sub_task.complete = !sub_task.complete;
             }
             None => (),
+        }
+    }
+    
+    fn move_task(&mut self, up: bool) {
+        let sub_tasks = &mut self.current_task.borrow_mut().sub_tasks;
+        if let Some(index) = self.selection {
+            if up {
+                let new_index = if index == 0 { sub_tasks.len() - 1 } else { index - 1};
+                sub_tasks.swap(new_index, index);
+                self.selection = Some(new_index);
+            }
+            else {
+                let new_index = if index == sub_tasks.len() - 1 { 0 } else { index + 1};
+                sub_tasks.swap(new_index, index);
+                self.selection = Some(new_index);
+            }
         }
     }
 
