@@ -18,14 +18,15 @@ Can be run with cargo from the root of the directory. Logging is provided by the
 
     $ cargo run --release 2>err.log
 
-Once running, **yat** uses the following (vim-*ish*) key bindings:
+Once running, **yat** uses the following key bindings:
 
 |Key      | Command                     |
 |---------|-----------------------------|
 |a        | add new task                |
 |e        | edit selected task          |
 |d        | delete selected task        |
-|m        | move selected task          |
+|u        | move selected task up       |
+|n        | move selected task down     |
 |w        | save todo list to file      |
 |q        | quit                        |
 |k, Up    | move selection up           |
@@ -38,6 +39,14 @@ Once running, **yat** uses the following (vim-*ish*) key bindings:
 The user interface shows 4 panels: parent task, tasks, sub-tasks and selection. The tasks panel is the main panel, which allows you to navigate between tasks.
 
 ![Screenshot](screenshot.png)
+
+Moving the selection can be done with the UP and DOWN keys or alternatively with the vi(m) keys:
+
+      k
+      |
+    h─.─l
+      |
+      j
 
 The layout of the task on the panel is as follows:
 
