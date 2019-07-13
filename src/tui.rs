@@ -122,20 +122,20 @@ impl Window {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
 
-        self.mvprintw(y - height + 1, x, UPPER_LEFT_CORNER);
+        self.mvprintw(y + 1 - height, x, UPPER_LEFT_CORNER);
         self.mvprintw(y, x, LOWER_LEFT_CORNER);
 
-        self.mvprintw(y - height + 1, x + width - 1, UPPER_RIGHT_CORNER);
+        self.mvprintw(y + 1 - height, x + width - 1, UPPER_RIGHT_CORNER);
         self.mvprintw(y, x + width - 1, LOWER_RIGHT_CORNER);
 
-        for j in (y - height + 2)..y {
+        for j in (y + 2 - height)..y {
             self.mvprintw(j, x, VERTICAL_LINE);
             self.mvprintw(j, x + width - 1, VERTICAL_LINE);
         }
 
         for i in (x + 1)..(x + width - 1) {
             self.mvprintw(y, i, HORIZONTAL_LINE);
-            self.mvprintw(y - height + 1, i, HORIZONTAL_LINE);
+            self.mvprintw(y + 1 - height, i, HORIZONTAL_LINE);
         }
     }
 
