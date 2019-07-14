@@ -1,3 +1,4 @@
+use crate::config::Config;
 use log::{error, warn};
 use std::io::{Stdin, Stdout, Write};
 use termion::event::Key;
@@ -5,27 +6,21 @@ use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, style};
 
-const HORIZONTAL_LINE: &'static str = "─";
-const VERTICAL_LINE: &'static str = "│";
-const UPPER_LEFT_CORNER: &'static str = "┌";
-const UPPER_RIGHT_CORNER: &'static str = "┐";
-const LOWER_LEFT_CORNER: &'static str = "└";
-const LOWER_RIGHT_CORNER: &'static str = "┘";
-
-pub struct Window {
+pub struct Window<'a> {
     stdin: Keys<Stdin>,
     stdout: RawTerminal<Stdout>,
+    config: Config<'a>,
 }
 
-impl Drop for Window {
+impl<'a> Drop for Window<'a> {
     fn drop(&mut self) {
         self.endwin();
         self.show_cursor();
     }
 }
 
-impl Window {
-    pub fn new(stdin: Stdin, stdout: Stdout) -> Result<Window, ()> {
+impl<'a> Window<'a> {
+    pub fn new(stdin: Stdin, stdout: Stdout, config: Config<'a>) -> Result<Window<'a>, ()> {
         let raw = match stdout.into_raw_mode() {
             Ok(out) => out,
             Err(_) => {
@@ -36,6 +31,7 @@ impl Window {
         Ok(Window {
             stdin: stdin.keys(),
             stdout: raw,
+            config,
         })
     }
 
@@ -78,13 +74,51 @@ impl Window {
         });
     }
 
-    pub fn colour_on<F: color::Color, B: color::Color>(&mut self, fg: F, bg: B) {
-        write!(self.stdout, "{}{}", color::Fg(fg), color::Bg(bg)).unwrap_or_else(|err| {
+    pub fn colour_on(&mut self, fg: usize, bg: usize) {
+        let fgcol = match fg {
+            0 => self.config.colour0,
+            1 => self.config.colour1,
+            2 => self.config.colour2,
+            3 => self.config.colour3,
+            4 => self.config.colour4,
+            5 => self.config.colour5,
+            6 => self.config.colour6,
+            7 => self.config.colour7,
+            8 => self.config.colourfg,
+            _ => return (),
+        };
+
+        let bgcol = match bg {
+            0 => self.config.colour0,
+            1 => self.config.colour1,
+            2 => self.config.colour2,
+            3 => self.config.colour3,
+            4 => self.config.colour4,
+            5 => self.config.colour5,
+            6 => self.config.colour6,
+            7 => self.config.colour7,
+            8 => self.config.colourbg,
+            _ => return (),
+        };
+
+        write!(self.stdout, "{}{}", color::Fg(fgcol), color::Bg(bgcol)).unwrap_or_else(|err| {
             warn!("Unable to turn colour on: {}", err);
         });
     }
 
     pub fn colour_off(&mut self) {
+        write!(
+            self.stdout,
+            "{}{}",
+            color::Fg(self.config.colourfg),
+            color::Bg(self.config.colourbg)
+        )
+        .unwrap_or_else(|err| {
+            warn!("Unable to turn colour off: {}", err);
+        });
+    }
+
+    pub fn colour_reset(&mut self) {
         write!(
             self.stdout,
             "{}{}",
@@ -122,20 +156,20 @@ impl Window {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
 
-        self.mvprintw(y + 1 - height, x, UPPER_LEFT_CORNER);
-        self.mvprintw(y, x, LOWER_LEFT_CORNER);
+        self.mvprintw(y + 1 - height, x, self.config.ulcorner);
+        self.mvprintw(y, x, self.config.llcorner);
 
-        self.mvprintw(y + 1 - height, x + width - 1, UPPER_RIGHT_CORNER);
-        self.mvprintw(y, x + width - 1, LOWER_RIGHT_CORNER);
+        self.mvprintw(y + 1 - height, x + width - 1, self.config.urcorner);
+        self.mvprintw(y, x + width - 1, self.config.lrcorner);
 
         for j in (y + 2 - height)..y {
-            self.mvprintw(j, x, VERTICAL_LINE);
-            self.mvprintw(j, x + width - 1, VERTICAL_LINE);
+            self.mvprintw(j, x, self.config.vline);
+            self.mvprintw(j, x + width - 1, self.config.vline);
         }
 
         for i in (x + 1)..(x + width - 1) {
-            self.mvprintw(y, i, HORIZONTAL_LINE);
-            self.mvprintw(y + 1 - height, i, HORIZONTAL_LINE);
+            self.mvprintw(y, i, self.config.hline);
+            self.mvprintw(y + 1 - height, i, self.config.hline);
         }
     }
 
@@ -158,6 +192,7 @@ impl Window {
     }
 
     pub fn endwin(&mut self) {
+        self.colour_reset();
         write!(
             self.stdout,
             "{}{}{}",

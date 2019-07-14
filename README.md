@@ -8,10 +8,10 @@ The terminal user interface (TUI) is built around the excellent [termion](https:
 ## Installation
 Requires an installation of [Rust](https://www.rust-lang.org/tools/install). Recommended build profile is release:
     
-    $ curl https://sh.rustup.rs -sSf | sh
-    $ git clone https://github.com/drvog/yat-rs 
-    $ cd yat-rs
-    $ cargo run --release
+    $ curl https://sh.rustup.rs -sSf | sh         # install Rust
+    $ git clone https://github.com/drvog/yat-rs   # clone repository
+    $ cd yat-rs                                   # change into source directory
+    $ cargo run --release                         # compile and run
 
 ## Usage
 Can be run with cargo from the root of the directory. Logging is provided by the nifty [fern](https://crates.io/crates/fern) and [log](https://crates.io/crates/log) crates; this will print to stderr, but these will be missed behind the TUI, so it might be useful to redirect them to a file:
@@ -73,6 +73,7 @@ Usually **yat** will save to $HOME/.todo/save.txt, which will be created the fir
 1. Loading: although loading from a save file is implemented, the parsing functionality can be made more robust.
 2. Configuration: user configuration e.g. custom colour scheme, keybindings etc.
 3. Clean-up: general code clean-up and refactoring, including more extensive commenting.
+4. Windows: currently yat is built on top of termion, which works on UNIX-like terminals, and therefore lacks Windows support.
 
 ## License
 

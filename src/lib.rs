@@ -1,3 +1,4 @@
+pub mod config;
 pub mod logger;
 mod todo;
 mod tui;
@@ -11,7 +12,6 @@ use std::io::{self, Read};
 use std::path::PathBuf;
 use std::rc::{Rc, Weak};
 use std::str::Lines;
-use termion::color;
 use termion::event::Key;
 use todo::{Priority, ToDo};
 use tui::Window;
@@ -66,8 +66,8 @@ pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
     }
 }
 
-pub struct View {
-    window: Window,
+pub struct View<'a> {
+    window: Window<'a>,
     current_task: Rc<RefCell<ToDo>>,
     selection: Option<usize>,
     root: bool,
@@ -75,12 +75,13 @@ pub struct View {
     save_file: Option<PathBuf>,
 }
 
-impl View {
-    pub fn new() -> Result<View, ()> {
+impl<'a> View<'a> {
+    pub fn new(config: config::Config<'a>) -> Result<View<'a>, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
         let stdout = io::stdout();
-        let window = Window::new(stdin, stdout)?;
+        let mut window = Window::new(stdin, stdout, config)?;
+        window.colour_off();
 
         info!("Created new View.");
         Ok(View {
@@ -93,11 +94,12 @@ impl View {
         })
     }
 
-    pub fn new_from_save(filename: PathBuf) -> Result<View, ()> {
+    pub fn new_from_save(filename: PathBuf, config: config::Config<'a>) -> Result<View<'a>, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
         let stdout = io::stdout();
-        let window = Window::new(stdin, stdout)?;
+        let mut window = Window::new(stdin, stdout, config)?;
+        window.colour_off();
 
         let mut view = View {
             window,
@@ -248,7 +250,7 @@ impl View {
         self.window.border((ymax - 1, 0), (3, xmax));
         self.window
             .rectangle(&(' '.to_string())[..], (ymax - 1, 1), (2, xmax - 2));
-        self.window.colour_on(color::Black, color::White);
+        self.window.colour_on(0, 7);
         self.window.mvprintw(ymax - 2, 2, prompt);
         self.window.colour_off();
         self.window.mvprintw(ymax - 2, 3 + prompt.len(), text);
@@ -313,7 +315,7 @@ impl View {
         self.window.hide_cursor();
 
         let (ymax, xmax) = self.window.get_max_yx();
-        
+
         // Panels
         let mut path = self.current_task.borrow().task.clone();
         self.current_task.borrow().task_path(&mut path);
@@ -324,14 +326,14 @@ impl View {
             .border((ymax - 4, xmax / 2), (ymax - 6, xmax / 2));
         self.window.border((ymax - 1, 0), (3, xmax));
 
-        self.window.colour_on(color::Blue, color::Reset);
+        self.window.colour_on(4, 8);
         self.window.mvprintw(0, 2, "Parent");
         self.window.mvprintw(3, 2, "Tasks");
         self.window.mvprintw(3, xmax / 2 + 2, "Sub-tasks");
         self.window.mvprintw(ymax - 3, 2, "Selection");
         self.window.colour_off();
 
-        self.window.colour_on(color::Cyan, color::Reset);
+        self.window.colour_on(6, 8);
         match self.selection {
             Some(index) => {
                 if index > self.current_task.borrow().sub_tasks.len() - 1 {
@@ -345,7 +347,7 @@ impl View {
                         &self.current_task.borrow().sub_tasks[index].borrow().task,
                     );
                 }
-            } 
+            }
             None => (),
         };
         self.window.colour_off();
@@ -355,7 +357,7 @@ impl View {
         for (i, elem) in sub_tasks.iter().enumerate() {
             if elem.borrow().complete {
                 self.window.mvprintw(y, 3, "[");
-                self.window.colour_on(color::Blue, color::Reset);
+                self.window.colour_on(4, 8);
                 self.window.mvprintw(y, 4, "X");
                 self.window.colour_off();
                 self.window.mvprintw(y, 5, "]");
@@ -364,13 +366,13 @@ impl View {
             }
             match elem.borrow().priority {
                 Some(Priority::Low) => {
-                    self.window.colour_on(color::Green, color::Reset);
+                    self.window.colour_on(2, 8);
                 }
                 Some(Priority::Medium) => {
-                    self.window.colour_on(color::Yellow, color::Reset);
+                    self.window.colour_on(3, 8);
                 }
                 Some(Priority::High) => {
-                    self.window.colour_on(color::Red, color::Reset);
+                    self.window.colour_on(1, 8);
                 }
                 _ => (),
             };
@@ -385,7 +387,7 @@ impl View {
                     for sub_elem in elem.borrow().sub_tasks.iter() {
                         if sub_elem.borrow().complete {
                             self.window.mvprintw(yy, xmax / 2 + 3, "[");
-                            self.window.colour_on(color::Blue, color::Reset);
+                            self.window.colour_on(4, 8);
                             self.window.mvprintw(yy, xmax / 2 + 4, "X");
                             self.window.colour_off();
                             self.window.mvprintw(yy, xmax / 2 + 5, "]");
@@ -394,13 +396,13 @@ impl View {
                         }
                         match sub_elem.borrow().priority {
                             Some(Priority::Low) => {
-                                self.window.colour_on(color::Green, color::Reset);
+                                self.window.colour_on(2, 8);
                             }
                             Some(Priority::Medium) => {
-                                self.window.colour_on(color::Yellow, color::Reset);
+                                self.window.colour_on(3, 8);
                             }
                             Some(Priority::High) => {
-                                self.window.colour_on(color::Red, color::Reset);
+                                self.window.colour_on(1, 8);
                             }
                             _ => (),
                         };
@@ -478,17 +480,24 @@ impl View {
             None => (),
         }
     }
-    
+
     fn move_task(&mut self, up: bool) {
         let sub_tasks = &mut self.current_task.borrow_mut().sub_tasks;
         if let Some(index) = self.selection {
             if up {
-                let new_index = if index == 0 { sub_tasks.len() - 1 } else { index - 1};
+                let new_index = if index == 0 {
+                    sub_tasks.len() - 1
+                } else {
+                    index - 1
+                };
                 sub_tasks.swap(new_index, index);
                 self.selection = Some(new_index);
-            }
-            else {
-                let new_index = if index == sub_tasks.len() - 1 { 0 } else { index + 1};
+            } else {
+                let new_index = if index == sub_tasks.len() - 1 {
+                    0
+                } else {
+                    index + 1
+                };
                 sub_tasks.swap(new_index, index);
                 self.selection = Some(new_index);
             }
@@ -573,7 +582,7 @@ impl View {
         self.window.border((ymax - 1, 0), (3, xmax));
         self.window
             .rectangle(&(' '.to_string())[..], (ymax - 1, 1), (2, xmax - 2));
-        self.window.colour_on(color::Red, color::White);
+        self.window.colour_on(1, 7);
         self.window.mvprintw(ymax - 2, 2, prompt);
         self.window.colour_off();
         self.window.refresh();

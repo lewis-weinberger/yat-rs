@@ -10,3 +10,5 @@ dirs = "1.0"
 log = "0.4.6"
 fern = "0.5.8"
 chrono = "0.4.7"
+toml = "0.5.1"
+serde = { version = "1.0.0", features = ["derive"] }
