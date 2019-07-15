@@ -11,10 +11,14 @@ fn main() {
     setup_logger();
 
     // Configuration
-    let config = match check_for_config() {
-        Ok(conf) => conf,
-        Err(()) => Config::default(),
-    };
+    let mut config = Config::default();
+    let found_config = check_for_config();
+    match &found_config {
+        Some(configbuf) => {
+            config = configbuf.config();
+        }
+        None => (),
+    }
 
     // Check for existence of valid save file
     let view_result = match look_for_save(env::args()) {

@@ -1,0 +1,21 @@
+# Funky panel borders
+
+[borders]                   # Panel customisation
+hline = "═"                 # horizontal line
+vline = "║"                 # vertical line
+ulcorner = "▛"              # upper left corner
+urcorner = "▜"              # upper right corner
+llcorner = "▙"              # lower left corner
+lrcorner = "▟"              # lower right corner
+
+[colours]                   # Colourscheme customisation
+colour0 = [88, 110, 117]    # black
+colour1 = [220, 50, 47]     # red
+colour2 = [133, 153, 0]     # green
+colour3 = [181, 137, 0]     # yellow
+colour4 = [38, 139, 210]    # blue
+colour5 = [211, 54, 130]    # magenta
+colour6 = [42, 161, 152]    # cyan
+colour7 = [7, 54, 66]       # white
+colourfg = [131, 148, 150]  # foreground
+colourbg = [0, 43, 54]      # background
