@@ -103,7 +103,7 @@ It is possible to tweak the appearance of **yat** at runtime using a configurati
     colourfg = [131, 148, 150]  # foreground
     colourbg = [0, 43, 54]      # background
 
-Currently **yat** requires all of these to be specified otherwise it will ignore them and use the default configuration. The `borders` must be valid unicode, and the `colours` are specified as (r, g, b) where r/g/b are u8 integers, i.e. values in the interval (0, 256]. Note importantly this will only work if your terminal supports 24-bit colours ("True Color"), and is untested on incompatible terminal emulators. Some examples are provided in the [configs](configs) directory.
+Currently **yat** requires all of these to be specified otherwise it will ignore them and use the default configuration. The `borders` must be valid unicode, and the `colours` are specified as (r, g, b) where r/g/b are u8 integers, i.e. values in the interval `[0, 256)`. Note importantly this will only work if your terminal supports 24-bit colours ("True Color"), and is untested on incompatible terminal emulators. Some examples are provided in the [configs](configs) directory.
 
 <a name="to-do"></a>
 ## To Do
