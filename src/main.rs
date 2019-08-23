@@ -15,7 +15,7 @@ fn main() {
     let found_config = check_for_config();
     match &found_config {
         Some(configbuf) => {
-            config = configbuf.config();
+            config = configbuf.config(config);
         }
         None => (),
     }

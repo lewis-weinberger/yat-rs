@@ -1,0 +1,21 @@
+# Nord theme
+
+[borders]                   # Panel customisation
+hline = "─"                 # horizontal line
+vline = "│"                 # vertical line
+ulcorner = "┌"              # upper left corner
+urcorner = "┐"              # upper right corner
+llcorner = "└"              # lower left corner
+lrcorner = "┘"              # lower right corner
+
+[colours]                   # Colourscheme customisation
+colour0 = [46, 52, 64]      # black
+colour1 = [191, 97, 106]    # red
+colour2 = [163, 190, 140]   # green
+colour3 = [235, 203, 139]   # yellow
+colour4 = [94, 129, 172]    # blue
+colour5 = [180, 142, 173]   # magenta
+colour6 = [136, 192, 208]   # cyan
+colour7 = [216, 222, 233]   # white
+colourfg = [229, 233, 240]  # foreground
+colourbg = [46, 52, 64]     # background
