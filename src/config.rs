@@ -120,119 +120,39 @@ pub struct ConfigBuffer {
 
 impl ConfigBuffer {
     pub fn config<'a>(&'a self, default: Config<'a>) -> Config<'a> {
-        // TODO: rewrite as macro
-        let hline = match &self.hline {
-            Some(string) => {
-                info!("Using custom hline.");
-                string
-            },
-            None => default.hline,
-        };
-        let vline = match &self.vline {
-            Some(string) => {
-                info!("Using custom vline.");
-                string
-            },
-            None => default.vline,
-        };
-        let ulcorner = match &self.ulcorner {
-            Some(string) => {
-                info!("Using custom ulcorner.");
-                string
-            },
-            None => default.ulcorner,
-        };
-        let urcorner = match &self.urcorner {
-            Some(string) => {
-                info!("Using custom urcorner.");
-                string
-            },
-            None => default.urcorner,
-        };
-        let llcorner = match &self.llcorner {
-            Some(string) =>  {
-                info!("Using custom llcorner.");
-                string
-            },
-            None => default.llcorner,
-        };
-        let lrcorner = match &self.lrcorner {
-            Some(string) =>  {
-                info!("Using custom lcorner.");
-                string
-            },
-            None => default.lrcorner,
-        };
-        let colour0 = match &self.colour0 {
-            Some(col) =>  {
-                info!("Using custom colour0.");
-                col
-            },
-            None => default.colour0,
-        };
-        let colour1 = match &self.colour1 {
-            Some(col) =>  {
-                info!("Using custom colour1.");
-                col
-            },
-            None => default.colour1,
-        };
-        let colour2 = match &self.colour2 {
-            Some(col) =>  {
-                info!("Using custom colour2.");
-                col
-            },
-            None => default.colour2,
-        };
-        let colour3 = match &self.colour3 {
-            Some(col) =>  {
-                info!("Using custom colour3.");
-                col
-            },
-            None => default.colour3,
-        };
-        let colour4 = match &self.colour4 {
-            Some(col) =>  {
-                info!("Using custom colour4.");
-                col
-            },
-            None => default.colour4,
-        };
-        let colour5 = match &self.colour5 {
-            Some(col) =>  {
-                info!("Using custom colour5.");
-                col
-            },
-            None => default.colour5,
-        };
-        let colour6 = match &self.colour6 {
-            Some(col) =>  {
-                info!("Using custom colour6.");
-                col
-            },
-            None => default.colour6,
-        };
-        let colour7 = match &self.colour7 {
-            Some(col) =>  {
-                info!("Using custom colour7.");
-                col
-            },
-            None => default.colour7,
-        };
-        let colourfg = match &self.colourfg {
-            Some(col) =>  {
-                info!("Using custom colourfg.");
-                col
-            },
-            None => default.colourfg,
-        };
-        let colourbg = match &self.colourbg {
-            Some(col) =>  {
-                info!("Using custom colourbg.");
-                col
-            },
-            None => default.colourbg,
-        };
+        macro_rules! choose_config {
+            ($attr:ident, $name:expr) => {
+                {
+                    match &self.$attr {
+                        Some(val) => {
+                            info!("Using custom {}.", $name);
+                            val
+                        },
+                        None => default.$attr
+                    }
+                }
+            };
+        }
+
+        // Borders
+        let hline = choose_config!(hline, "hline");
+        let vline = choose_config!(vline, "vline");
+        let ulcorner = choose_config!(ulcorner, "ulcorner");
+        let urcorner = choose_config!(urcorner, "urcorner");
+        let llcorner = choose_config!(llcorner, "llcorner");
+        let lrcorner = choose_config!(lrcorner, "lrcorner");
+
+        // Colours
+        let colour0 = choose_config!(colour0, "colour0");
+        let colour1 = choose_config!(colour1, "colour1");
+        let colour2 = choose_config!(colour2, "colour2");
+        let colour3 = choose_config!(colour3, "colour3");
+        let colour4 = choose_config!(colour4, "colour4");
+        let colour5 = choose_config!(colour5, "colour5");
+        let colour6 = choose_config!(colour6, "colour6");
+        let colour7 = choose_config!(colour7, "colour7");
+        let colourfg = choose_config!(colourfg, "colourfg");
+        let colourbg = choose_config!(colourbg, "colourbg");
 
         Config {
             hline,
