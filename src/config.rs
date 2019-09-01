@@ -253,22 +253,15 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         urcorner,
         llcorner,
         lrcorner,
-        colour0: colour_from_vec(colour0),
-        colour1: colour_from_vec(colour1),
-        colour2: colour_from_vec(colour2),
-        colour3: colour_from_vec(colour3),
-        colour4: colour_from_vec(colour4),
-        colour5: colour_from_vec(colour5),
-        colour6: colour_from_vec(colour6),
-        colour7: colour_from_vec(colour7),
-        colourfg: colour_from_vec(colourfg),
-        colourbg: colour_from_vec(colourbg),
+        colour0: colour0.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour1: colour1.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour2: colour2.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour3: colour3.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour4: colour4.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour5: colour5.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour6: colour6.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colour7: colour7.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colourfg: colourfg.map(|x| color::Rgb(x[0], x[1], x[2])),
+        colourbg: colourbg.map(|x| color::Rgb(x[0], x[1], x[2])),
     })
-}
-
-fn colour_from_vec(rgb: Option<Vec<u8>>) -> Option<color::Rgb> {
-    match rgb {
-        Some(rgbv) => Some(color::Rgb(rgbv[0], rgbv[1], rgbv[2])),
-        None => None,
-    }
 }
