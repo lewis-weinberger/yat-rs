@@ -1,0 +1,7 @@
+# vi(m) style movement keys
+
+[keys]
+up = 'k'
+down = 'j'
+focus = 'l'
+back = 'h'

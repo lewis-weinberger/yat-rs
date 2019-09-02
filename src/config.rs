@@ -3,11 +3,13 @@ use log::{info, warn};
 use serde::Deserialize;
 use std::fs::read_to_string;
 use termion::color;
+use termion::event::Key;
 
 #[derive(Deserialize, Debug)]
 struct TomlConfig {
     borders: Option<Borders>,
     colours: Option<Colours>,
+    keys: Option<Keys>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -34,6 +36,24 @@ struct Colours {
     colourbg: Option<Vec<u8>>,
 }
 
+#[derive(Deserialize, Debug)]
+struct Keys {
+    quit: Option<char>,
+    back: Option<char>,
+    save: Option<char>,
+    add: Option<char>,
+    edit: Option<char>,
+    delete: Option<char>,
+    task_up: Option<char>,
+    task_down: Option<char>,
+    up: Option<char>,
+    down: Option<char>,
+    focus: Option<char>,
+    complete: Option<char>,
+    increase: Option<char>,
+    decrease: Option<char>,
+}
+
 pub struct Config<'a> {
     pub hline: &'a str,
     pub vline: &'a str,
@@ -51,12 +71,26 @@ pub struct Config<'a> {
     pub colour7: &'a dyn color::Color,
     pub colourfg: &'a dyn color::Color,
     pub colourbg: &'a dyn color::Color,
+    pub quit: Key,
+    pub back: Key,
+    pub save: Key,
+    pub add: Key,
+    pub edit: Key,
+    pub delete: Key,
+    pub task_up: Key,
+    pub task_down: Key,
+    pub up: Key,
+    pub down: Key,
+    pub focus: Key,
+    pub complete: Key,
+    pub increase: Key,
+    pub decrease: Key,
 }
 
 impl<'a> Config<'a> {
     // Create default configuration
     pub fn default() -> Config<'static> {
-        // Border characters
+        // Default border characters
         let hline = "─";
         let vline = "│";
         let ulcorner = "┌";
@@ -78,6 +112,22 @@ impl<'a> Config<'a> {
         let colourfg = &color::Reset;
         let colourbg = &color::Reset;
 
+        // Default keybindings
+        let quit = Key::Char('q');
+        let back = Key::Char('b');
+        let save = Key::Char('w');
+        let add = Key::Char('a');
+        let edit = Key::Char('e');
+        let delete = Key::Char('d');
+        let task_up = Key::Char('u');
+        let task_down = Key::Char('n');
+        let up = Key::Up;
+        let down = Key::Down;
+        let focus = Key::Char('\n');
+        let complete = Key::Char(' ');
+        let increase = Key::Char('>');
+        let decrease = Key::Char('<');
+
         Config {
             hline,
             vline,
@@ -95,6 +145,20 @@ impl<'a> Config<'a> {
             colour7,
             colourfg,
             colourbg,
+            quit,
+            back,
+            save,
+            add,
+            edit,
+            delete,
+            task_up,
+            task_down,
+            up,
+            down,
+            focus,
+            complete,
+            increase,
+            decrease,
         }
     }
 }
@@ -116,22 +180,34 @@ pub struct ConfigBuffer {
     pub colour7: Option<color::Rgb>,
     pub colourfg: Option<color::Rgb>,
     pub colourbg: Option<color::Rgb>,
+    pub quit: Option<Key>,
+    pub back: Option<Key>,
+    pub save: Option<Key>,
+    pub add: Option<Key>,
+    pub edit: Option<Key>,
+    pub delete: Option<Key>,
+    pub task_up: Option<Key>,
+    pub task_down: Option<Key>,
+    pub up: Option<Key>,
+    pub down: Option<Key>,
+    pub focus: Option<Key>,
+    pub complete: Option<Key>,
+    pub increase: Option<Key>,
+    pub decrease: Option<Key>,
 }
 
 impl ConfigBuffer {
     pub fn config<'a>(&'a self, default: Config<'a>) -> Config<'a> {
         macro_rules! choose_config {
-            ($attr:ident, $name:expr) => {
-                {
-                    match &self.$attr {
-                        Some(val) => {
-                            info!("Using custom {}.", $name);
-                            val
-                        },
-                        None => default.$attr
+            ($attr:ident, $name:expr) => {{
+                match &self.$attr {
+                    Some(val) => {
+                        info!("Using custom {}.", $name);
+                        val
                     }
+                    None => default.$attr,
                 }
-            };
+            }};
         }
 
         // Borders
@@ -154,6 +230,34 @@ impl ConfigBuffer {
         let colourfg = choose_config!(colourfg, "colourfg");
         let colourbg = choose_config!(colourbg, "colourbg");
 
+        macro_rules! choose_config_val {
+            ($attr:ident, $name:expr) => {{
+                match self.$attr {
+                    Some(val) => {
+                        info!("Using custom {}.", $name);
+                        val
+                    }
+                    None => default.$attr,
+                }
+            }};
+        }
+
+        // Keys
+        let quit = choose_config_val!(quit, "quit key");
+        let back = choose_config_val!(back, "back key");
+        let save = choose_config_val!(save, "save key");
+        let add = choose_config_val!(add, "add key");
+        let edit = choose_config_val!(edit, "edit key");
+        let delete = choose_config_val!(delete, "delete key");
+        let task_up = choose_config_val!(task_up, "task_up key");
+        let task_down = choose_config_val!(task_down, "task_down key");
+        let up = choose_config_val!(up, "up key");
+        let down = choose_config_val!(down, "down key");
+        let focus = choose_config_val!(focus, "focus key");
+        let complete = choose_config_val!(complete, "complete key");
+        let increase = choose_config_val!(increase, "increase key");
+        let decrease = choose_config_val!(decrease, "decrease key");
+
         Config {
             hline,
             vline,
@@ -171,6 +275,20 @@ impl ConfigBuffer {
             colour7,
             colourfg,
             colourbg,
+            quit,
+            back,
+            save,
+            add,
+            edit,
+            delete,
+            task_up,
+            task_down,
+            up,
+            down,
+            focus,
+            complete,
+            increase,
+            decrease,
         }
     }
 }
@@ -246,6 +364,43 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         None => (None, None, None, None, None, None, None, None, None, None),
     };
 
+    let (
+        quit,
+        back,
+        save,
+        add,
+        edit,
+        delete,
+        task_up,
+        task_down,
+        up,
+        down,
+        focus,
+        complete,
+        increase,
+        decrease,
+    ) = match toml_config.keys {
+        Some(keys) => (
+            keys.quit,
+            keys.back,
+            keys.save,
+            keys.add,
+            keys.edit,
+            keys.delete,
+            keys.task_up,
+            keys.task_down,
+            keys.up,
+            keys.down,
+            keys.focus,
+            keys.complete,
+            keys.increase,
+            keys.decrease,
+        ),
+        None => (
+            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+        ),
+    };
+
     Some(ConfigBuffer {
         hline,
         vline,
@@ -263,5 +418,19 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         colour7: colour7.map(|x| color::Rgb(x[0], x[1], x[2])),
         colourfg: colourfg.map(|x| color::Rgb(x[0], x[1], x[2])),
         colourbg: colourbg.map(|x| color::Rgb(x[0], x[1], x[2])),
+        quit: quit.map(|x| Key::Char(x)),
+        back: back.map(|x| Key::Char(x)),
+        save: save.map(|x| Key::Char(x)),
+        add: add.map(|x| Key::Char(x)),
+        edit: edit.map(|x| Key::Char(x)),
+        delete: delete.map(|x| Key::Char(x)),
+        task_up: task_up.map(|x| Key::Char(x)),
+        task_down: task_down.map(|x| Key::Char(x)),
+        up: up.map(|x| Key::Char(x)),
+        down: down.map(|x| Key::Char(x)),
+        focus: focus.map(|x| Key::Char(x)),
+        complete: complete.map(|x| Key::Char(x)),
+        increase: increase.map(|x| Key::Char(x)),
+        decrease: decrease.map(|x| Key::Char(x)),
     })
 }

@@ -196,32 +196,25 @@ impl<'a> View<'a> {
         loop {
             self.list_tasks();
             match self.window.getch() {
-                Some(Key::Char('q')) => {
+                Some(key) if key == self.window.config.quit => {
                     self.quit = true;
                 }
-                Some(Key::Char('b')) => match self.root {
+                Some(key) if key == self.window.config.back => match self.root {
                     true => (),
                     false => break,
                 },
-                Some(Key::Char('h')) => match self.root {
-                    true => (),
-                    false => break,
-                },
-                Some(Key::Char('w')) => self.save(),
-                Some(Key::Char('a')) => self.add_task_from_input(),
-                Some(Key::Char('e')) => self.edit_task(),
-                Some(Key::Char('d')) => self.remove_task(),
-                Some(Key::Char('l')) => self.new_focus(),
-                Some(Key::Char('u')) => self.move_task(true),
-                Some(Key::Char('n')) => self.move_task(false),
-                Some(Key::Char('\n')) => self.new_focus(),
-                Some(Key::Char(' ')) => self.complete_task(),
-                Some(Key::Up) => self.move_selection(true),
-                Some(Key::Down) => self.move_selection(false),
-                Some(Key::Char('k')) => self.move_selection(true),
-                Some(Key::Char('j')) => self.move_selection(false),
-                Some(Key::Char('>')) => self.increase_priority(),
-                Some(Key::Char('<')) => self.decrease_priority(),
+                Some(key) if key == self.window.config.save => self.save(),
+                Some(key) if key == self.window.config.add => self.add_task_from_input(),
+                Some(key) if key == self.window.config.edit => self.edit_task(),
+                Some(key) if key == self.window.config.delete => self.remove_task(),
+                Some(key) if key == self.window.config.task_up => self.move_task(true),
+                Some(key) if key == self.window.config.task_down => self.move_task(false),
+                Some(key) if key == self.window.config.focus => self.new_focus(),
+                Some(key) if key == self.window.config.complete => self.complete_task(),
+                Some(key) if key == self.window.config.up => self.move_selection(true),
+                Some(key) if key == self.window.config.down => self.move_selection(false),
+                Some(key) if key == self.window.config.increase => self.increase_priority(),
+                Some(key) if key == self.window.config.decrease => self.decrease_priority(),
                 Some(_) => (),
                 None => (),
             }

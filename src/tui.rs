@@ -9,7 +9,7 @@ use termion::{clear, color, cursor, style};
 pub struct Window<'a> {
     stdin: Keys<Stdin>,
     stdout: RawTerminal<Stdout>,
-    config: Config<'a>,
+    pub config: Config<'a>,
 }
 
 impl<'a> Drop for Window<'a> {
