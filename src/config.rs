@@ -199,7 +199,7 @@ pub struct ConfigBuffer {
 impl ConfigBuffer {
     pub fn config<'a>(&'a self, default: Config<'a>) -> Config<'a> {
         macro_rules! choose_config {
-            ($attr:ident, $name:expr) => {{
+            ($attr:ident, $name:expr) => {
                 match &self.$attr {
                     Some(val) => {
                         info!("Using custom {}.", $name);
@@ -207,7 +207,7 @@ impl ConfigBuffer {
                     }
                     None => default.$attr,
                 }
-            }};
+            };
         }
 
         // Borders
@@ -231,7 +231,7 @@ impl ConfigBuffer {
         let colourbg = choose_config!(colourbg, "colourbg");
 
         macro_rules! choose_config_val {
-            ($attr:ident, $name:expr) => {{
+            ($attr:ident, $name:expr) => {
                 match self.$attr {
                     Some(val) => {
                         info!("Using custom {}.", $name);
@@ -239,7 +239,7 @@ impl ConfigBuffer {
                     }
                     None => default.$attr,
                 }
-            }};
+            };
         }
 
         // Keys
