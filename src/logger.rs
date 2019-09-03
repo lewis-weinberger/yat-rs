@@ -1,4 +1,6 @@
-// Dispatch logger to report errors and other information.
+/// Logging functionality.
+
+/// Dispatch logger to report errors and other information.
 pub fn setup_logger() {
     let dispatcher = fern::Dispatch::new()
         .format(|out, message, record| {

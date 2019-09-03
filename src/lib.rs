@@ -1,3 +1,5 @@
+/// Functionality for creating todo list using terminal user interface.
+
 pub mod config;
 pub mod logger;
 mod todo;
@@ -16,6 +18,7 @@ use termion::event::Key;
 use todo::{Priority, ToDo};
 use tui::Window;
 
+/// Check if save file exists.
 pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
     args.next();
 
@@ -66,6 +69,8 @@ pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
     }
 }
 
+/// Wrapper around the terminal user interface (Window) and the todo list
+/// tree structure (ToDo).
 pub struct View<'a> {
     window: Window<'a>,
     current_task: Rc<RefCell<ToDo>>,
@@ -76,6 +81,7 @@ pub struct View<'a> {
 }
 
 impl<'a> View<'a> {
+    /// Create view of a new todo list.
     pub fn new(config: config::Config<'a>) -> Result<View<'a>, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
@@ -94,6 +100,7 @@ impl<'a> View<'a> {
         })
     }
 
+    /// Create view of a todo list loaded from save file.
     pub fn new_from_save(filename: PathBuf, config: config::Config<'a>) -> Result<View<'a>, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
@@ -128,6 +135,7 @@ impl<'a> View<'a> {
         Ok(view)
     }
 
+    /// Load save file into string buffer.
     fn load(filename: PathBuf) -> Result<String, ()> {
         let mut file = match File::open(filename) {
             Ok(f) => f,
@@ -147,6 +155,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Parse save file and load into todo list tree structure.
     fn fill_children(&mut self, buf: &mut Lines, tabs: usize) -> Result<(), &'static str> {
         // Parse save file line by line
         if let Some(line) = buf.next() {
@@ -181,6 +190,7 @@ impl<'a> View<'a> {
         Ok(())
     }
 
+    /// Move current task to parent task, if it exists.
     fn ancestor(&mut self, level: usize) {
         let current = Rc::clone(&self.current_task);
         let pparent = &current.borrow().parent;
@@ -192,6 +202,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Game loop for user interaction and display.
     pub fn run(&mut self) {
         loop {
             self.list_tasks();
@@ -225,10 +236,12 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Create a diaglogue for user input with specified prompt.
     fn input_dialogue(&mut self, prompt: &str) -> String {
         self.dialogue(prompt, "")
     }
 
+    /// Create an editing dialogue.
     fn edit_dialogue(&mut self, prompt: &str, index: usize) -> String {
         let mut original = String::new();
         {
@@ -238,6 +251,7 @@ impl<'a> View<'a> {
         self.dialogue(prompt, &original)
     }
 
+    /// A dialogue box for user interaction.
     fn dialogue(&mut self, prompt: &str, text: &str) -> String {
         let (ymax, xmax) = self.window.get_max_yx();
         self.window.border((ymax - 1, 0), (3, xmax));
@@ -253,6 +267,13 @@ impl<'a> View<'a> {
         let mut entry = String::from(text);
         let mut index = entry.len();
         loop {
+            // Print entry
+            self.window.mvprintw(ymax - 2, 3 + prompt.len(), &entry);
+            self.window
+                .mv(ymax - 2, 3 + (prompt.len() + &entry[0..index].len()));
+            self.window.refresh();
+
+            // User input
             match self.window.getch() {
                 Some(Key::Char('\n')) => break,
                 Some(Key::Char(ch)) => {
@@ -295,14 +316,11 @@ impl<'a> View<'a> {
                 }
                 _ => (),
             }
-            self.window.mvprintw(ymax - 2, 3 + prompt.len(), &entry);
-            self.window
-                .mv(ymax - 2, 3 + (prompt.len() + &entry[0..index].len()));
-            self.window.refresh();
         }
         entry
     }
 
+    /// Display a list of the sub-tasks of the current task.
     fn list_tasks(&mut self) {
         self.window.clear();
         self.window.hide_cursor();
@@ -414,6 +432,7 @@ impl<'a> View<'a> {
         self.window.refresh();
     }
 
+    /// Increase the priority of the currently selected task.
     fn increase_priority(&mut self) {
         match self.selection {
             Some(index) => {
@@ -430,6 +449,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Decrease the priority of the currently selected task.
     fn decrease_priority(&mut self) {
         match self.selection {
             Some(index) => {
@@ -446,6 +466,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Add new task from user input.
     fn add_task_from_input(&mut self) {
         let task = self.input_dialogue("New Task:");
         let parent = Rc::downgrade(&self.current_task);
@@ -455,6 +476,7 @@ impl<'a> View<'a> {
         self.selection = Some(sub_tasks.len() - 1);
     }
 
+    /// Add new task from string buffer.
     fn add_task_from_string(&mut self, input: &str) {
         let parent = Rc::downgrade(&self.current_task);
         let todo = ToDo::from_string(input, parent);
@@ -463,6 +485,7 @@ impl<'a> View<'a> {
         self.selection = Some(sub_tasks.len() - 1);
     }
 
+    /// Mark task as completed.
     fn complete_task(&mut self) {
         let sub_tasks = &mut self.current_task.borrow_mut().sub_tasks;
         match self.selection {
@@ -474,6 +497,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Change ordering of sub-tasks for current task.
     fn move_task(&mut self, up: bool) {
         let sub_tasks = &mut self.current_task.borrow_mut().sub_tasks;
         if let Some(index) = self.selection {
@@ -497,6 +521,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Focus on currently selected sub-task.
     fn new_focus(&mut self) {
         let previous_root = self.root.clone();
         let previous_selection = self.selection.clone();
@@ -524,6 +549,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Edited currently selected sub-task.
     fn edit_task(&mut self) {
         match self.selection {
             Some(index) => {
@@ -536,6 +562,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Move selection cursor.
     fn move_selection(&mut self, ifup: bool) {
         self.selection = match self.selection {
             Some(index) => {
@@ -552,6 +579,7 @@ impl<'a> View<'a> {
         };
     }
 
+    /// Change index (wrapping below).
     fn up(&self, index: usize) -> Option<usize> {
         let ntasks = self.current_task.borrow().sub_tasks.len();
         if index as isize - 1 < 0 {
@@ -561,6 +589,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Change index (wrapping above).
     fn down(&self, index: usize) -> Option<usize> {
         let ntasks = self.current_task.borrow().sub_tasks.len();
         if index + 1 >= ntasks {
@@ -570,6 +599,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Create a pop-up diaglogue with user choice.
     fn popup(&mut self, prompt: &str) -> bool {
         let (ymax, xmax) = self.window.get_max_yx();
         self.window.border((ymax - 1, 0), (3, xmax));
@@ -596,6 +626,7 @@ impl<'a> View<'a> {
         choice
     }
 
+    /// Remove selected sub-task.
     fn remove_task(&mut self) {
         match self.selection {
             Some(index) => {
@@ -609,6 +640,7 @@ impl<'a> View<'a> {
         }
     }
 
+    /// Save todo list to file.
     fn save(&self) {
         let current = self.current_task.borrow();
         let filename = match self.save_file.clone() {
@@ -630,6 +662,7 @@ impl<'a> View<'a> {
     }
 }
 
+/// Determine number of tabs at start of string line.
 fn tab_num(line: &str) -> usize {
     let mut num = 0;
     while line[num..].starts_with(" ") {

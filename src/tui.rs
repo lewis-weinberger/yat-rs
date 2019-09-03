@@ -1,3 +1,6 @@
+/// Terminal user interface (TUI) functionality, with ncurses-like API,
+/// built on top of the termion crate.
+
 use crate::config::Config;
 use log::{error, warn};
 use std::io::{Stdin, Stdout, Write};
@@ -6,13 +9,18 @@ use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, style};
 
+/// A wrapper around the terminal for creating a window.
 pub struct Window<'a> {
+    /// Key input from Stdin.
     stdin: Keys<Stdin>,
+    /// Stdout, with terminal in raw-mode (no input line buffering, no echo).
     stdout: RawTerminal<Stdout>,
+    /// Yat configuration.
     pub config: Config<'a>,
 }
 
 impl<'a> Drop for Window<'a> {
+    /// Ensure the terminal is reset if the Window is dropped.
     fn drop(&mut self) {
         self.endwin();
         self.show_cursor();
@@ -20,6 +28,7 @@ impl<'a> Drop for Window<'a> {
 }
 
 impl<'a> Window<'a> {
+    /// Create a new Window, using terminal's stdin and stdout.
     pub fn new(stdin: Stdin, stdout: Stdout, config: Config<'a>) -> Result<Window<'a>, ()> {
         let raw = match stdout.into_raw_mode() {
             Ok(out) => out,
@@ -35,6 +44,7 @@ impl<'a> Window<'a> {
         })
     }
 
+    /// Find the terminal's dimensions.
     pub fn get_max_yx(&self) -> (usize, usize) {
         let (y, x) = termion::terminal_size().unwrap_or_else(|err| {
             warn!("Unable to determine terminal size: {}.", err);
@@ -43,24 +53,28 @@ impl<'a> Window<'a> {
         (x as usize, y as usize)
     }
 
+    /// Hide cursor from terminal.
     pub fn hide_cursor(&mut self) {
         write!(self.stdout, "{}", cursor::Hide).unwrap_or_else(|err| {
             warn!("Unable to hide cursor: {}.", err);
         });
     }
 
+    /// Display cursor on terminal.
     pub fn show_cursor(&mut self) {
         write!(self.stdout, "{}", cursor::Show).unwrap_or_else(|err| {
             warn!("Unable to show cursor: {}", err);
         });
     }
 
+    /// Flush stdout buffer to terminal.
     pub fn refresh(&mut self) {
         self.stdout.flush().unwrap_or_else(|err| {
             warn!("Unable to flush stdout: {}", err);
         });
     }
 
+    /// Return the key input from stdin.
     pub fn getch(&mut self) -> Option<Key> {
         match self.stdin.next() {
             Some(Ok(key)) => Some(key),
@@ -68,12 +82,14 @@ impl<'a> Window<'a> {
         }
     }
 
+    /// Move the cursor to position at row y, column x (zero-indexed).
     pub fn mv(&mut self, y: usize, x: usize) {
         write!(self.stdout, "{}", cursor::Goto(1 + x as u16, 1 + y as u16)).unwrap_or_else(|err| {
             warn!("Unable to mv cursor: {}", err);
         });
     }
 
+    /// Add colour to subsequent printed text.
     pub fn colour_on(&mut self, fg: usize, bg: usize) {
         let fgcol = match fg {
             0 => self.config.colour0,
@@ -106,6 +122,7 @@ impl<'a> Window<'a> {
         });
     }
 
+    /// Reset colours to default foreground and background.
     pub fn colour_off(&mut self) {
         write!(
             self.stdout,
@@ -118,6 +135,7 @@ impl<'a> Window<'a> {
         });
     }
 
+    /// Reset colours to terminal defaults.
     pub fn colour_reset(&mut self) {
         write!(
             self.stdout,
@@ -130,6 +148,7 @@ impl<'a> Window<'a> {
         });
     }
 
+    /// Print text at row y, column x (zero-indexed).
     pub fn mvprintw(&mut self, y: usize, x: usize, text: &str) {
         write!(
             self.stdout,
@@ -142,6 +161,8 @@ impl<'a> Window<'a> {
         });
     }
 
+    /// Print text at row y, column x (zero-indexed), truncated to ensure
+    /// the text does not spill beyond width.
     pub fn wrap_print(&mut self, y: usize, x: usize, width: usize, text: &str) {
         let len = text.len();
         let wid = width as usize - 3;
@@ -152,6 +173,7 @@ impl<'a> Window<'a> {
         }
     }
 
+    /// Print a rectangular border.
     pub fn border(&mut self, lower_left: (usize, usize), dimensions: (usize, usize)) {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
@@ -173,6 +195,7 @@ impl<'a> Window<'a> {
         }
     }
 
+    /// Fill a rectangular region with character ch.
     pub fn rectangle(&mut self, ch: &str, lower_left: (usize, usize), dimensions: (usize, usize)) {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
@@ -185,12 +208,14 @@ impl<'a> Window<'a> {
         }
     }
 
+    /// Clear stdout.
     pub fn clear(&mut self) {
         write!(self.stdout, "{}", clear::All).unwrap_or_else(|err| {
             warn!("Unable to clear stdout: {}", err);
         });
     }
 
+    /// Reset stdout.
     pub fn endwin(&mut self) {
         self.colour_reset();
         write!(

@@ -3,6 +3,12 @@ name = "yat"
 version = "0.1.0"
 authors = ["drvog"]
 edition = "2018"
+description = "A simple terminal todo list manager."
+repository = "https://github.com/drvog/yat-rs"
+readme = "README.md"
+keywords = ["todo", "task"]
+categories = ["command-line-utilities"]
+license-file = "LICENSE"
 
 [dependencies]
 termion = "1.5.3"

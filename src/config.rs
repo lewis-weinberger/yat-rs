@@ -1,3 +1,5 @@
+/// Configuration functionality for controlling appearance and keybindings.
+
 use dirs::home_dir;
 use log::{info, warn};
 use serde::Deserialize;
@@ -5,6 +7,7 @@ use std::fs::read_to_string;
 use termion::color;
 use termion::event::Key;
 
+/// Layout of config.toml file.
 #[derive(Deserialize, Debug)]
 struct TomlConfig {
     borders: Option<Borders>,
@@ -12,6 +15,7 @@ struct TomlConfig {
     keys: Option<Keys>,
 }
 
+/// Layout of [border] section of config.toml file.
 #[derive(Deserialize, Debug)]
 struct Borders {
     hline: Option<String>,
@@ -22,6 +26,7 @@ struct Borders {
     lrcorner: Option<String>,
 }
 
+/// Layout of [colours] section of config.toml file.
 #[derive(Deserialize, Debug)]
 struct Colours {
     colour0: Option<Vec<u8>>,
@@ -36,6 +41,7 @@ struct Colours {
     colourbg: Option<Vec<u8>>,
 }
 
+/// Layout of [keys] section of config.toml file.
 #[derive(Deserialize, Debug)]
 struct Keys {
     quit: Option<char>,
@@ -54,41 +60,77 @@ struct Keys {
     decrease: Option<char>,
 }
 
+/// Yat's configuration.
 pub struct Config<'a> {
+    /// Border configuration.
+    /// Horizontal border character(s)
     pub hline: &'a str,
+    /// Vertical border character(s)
     pub vline: &'a str,
+    /// Upper left border character(s)
     pub ulcorner: &'a str,
+    /// Upper right border character(s)
     pub urcorner: &'a str,
+    /// Lower left border character(s)
     pub llcorner: &'a str,
+    /// Lower right border character(s)
     pub lrcorner: &'a str,
+
+    /// Colour-scheme configuration.
+    /// Black colour.
     pub colour0: &'a dyn color::Color,
+    /// Red colour.
     pub colour1: &'a dyn color::Color,
+    /// Green colour.
     pub colour2: &'a dyn color::Color,
+    /// Yellow colour.
     pub colour3: &'a dyn color::Color,
+    /// Blue colour.
     pub colour4: &'a dyn color::Color,
+    /// Magenta colour.
     pub colour5: &'a dyn color::Color,
+    /// Cyan colour.
     pub colour6: &'a dyn color::Color,
+    /// White colour.
     pub colour7: &'a dyn color::Color,
+    /// Foreground colour.
     pub colourfg: &'a dyn color::Color,
+    /// Background colour.
     pub colourbg: &'a dyn color::Color,
+
+    /// Keybinding configuration.
+    /// Key to quit yat.
     pub quit: Key,
+    /// Key to return focus to parent.
     pub back: Key,
+    /// Key to write list to save file.
     pub save: Key,
+    /// Key to add new task.
     pub add: Key,
+    /// Key to edit selected task.
     pub edit: Key,
+    /// Key to delete selected task.
     pub delete: Key,
+    /// Key to move selected task up.
     pub task_up: Key,
+    /// Key to move selected task down.
     pub task_down: Key,
+    /// Key to move selection up.
     pub up: Key,
+    /// Key to move selection down.
     pub down: Key,
+    /// Key to focus on selected sub-task.
     pub focus: Key,
+    /// Key to mark task completed.
     pub complete: Key,
+    /// Key to increase task priority.
     pub increase: Key,
+    /// Key to decrease task priority.
     pub decrease: Key,
 }
 
 impl<'a> Config<'a> {
-    // Create default configuration
+    /// Create default configuration.
     pub fn default() -> Config<'static> {
         // Default border characters
         let hline = "─";
@@ -163,6 +205,7 @@ impl<'a> Config<'a> {
     }
 }
 
+/// A buffer that can hold loaded configuration.
 pub struct ConfigBuffer {
     pub hline: Option<String>,
     pub vline: Option<String>,
@@ -197,6 +240,7 @@ pub struct ConfigBuffer {
 }
 
 impl ConfigBuffer {
+    /// Create a Config from a buffer.
     pub fn config<'a>(&'a self, default: Config<'a>) -> Config<'a> {
         macro_rules! choose_config {
             ($attr:ident, $name:expr) => {
@@ -293,8 +337,10 @@ impl ConfigBuffer {
     }
 }
 
+/// Check for file at ~/.todo/config.toml and if present load
+/// user configuration.
 pub fn check_for_config() -> Option<ConfigBuffer> {
-    // Check for config file at ~/.todo/config.toml
+    // Check for config file at ~/.todo/config.toml 
     let mut filename = match home_dir() {
         Some(dir) => dir,
         None => {

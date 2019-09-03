@@ -111,9 +111,9 @@ It is possible to tweak the appearance and keybindings of **yat** at runtime usi
     increase = '>'              # increase task priority
     decrease = '<'              # decrease task priority
 
-You can specify as many or as few of these as you'd like (with the appropriate toml headers), and **yat** will use default configuration for the rest. The `borders` must be valid unicode, and the `colours` are specified as (r, g, b) where r/g/b are u8 integers, i.e. values in the interval `[0, 256)`. Note importantly this will only work if your terminal supports 24-bit colours ("True Color", see [here](https://gist.github.com/XVilka/8346728)), and is untested on incompatible terminal emulators&dagger;. Keybindings can be changed to other characters (note: use '\n' for Return). Some examples are provided in the [configs](configs) directory.
+You can specify as many or as few of these as you'd like (with the appropriate toml headers), and **yat** will use default configuration for the rest. The `borders` must be valid unicode, and the `colours` are specified as (r, g, b) where r/g/b are u8 integers, i.e. values in the interval `[0, 256)`. Note importantly this will only work if your terminal supports 24-bit colours ("True Color", see [here](https://gist.github.com/XVilka/8346728)), and is untested on incompatible terminal emulators&dagger;. Keybindings can be changed to other characters (note: use `'\n'` for Return). Some examples are provided in the [configs](configs) directory.
 
-&dagger;It's possible that using (r, g, b < 6) could work, but again, this is untested.
+&dagger;It's possible that using `r, g, b < 6` could work, but again, this is untested.
 
 <a name="to-do"></a>
 ## To Do

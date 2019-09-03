@@ -1,3 +1,5 @@
+/// Functionality for storing todo lists in a tree data structure.
+
 use log::{info, warn};
 use std::cell::RefCell;
 use std::fs::File;
@@ -5,6 +7,7 @@ use std::io::Write;
 use std::path::Path;
 use std::rc::{Rc, Weak};
 
+/// Task priority.
 #[derive(Debug, Clone)]
 pub enum Priority {
     Low,
@@ -12,6 +15,7 @@ pub enum Priority {
     High,
 }
 
+/// Node in the todo list tree structure.
 #[derive(Debug, Clone)]
 pub struct ToDo {
     pub task: String,
@@ -22,6 +26,7 @@ pub struct ToDo {
 }
 
 impl ToDo {
+    /// Create new todo list tree structure.
     pub fn new(task: &str, parent: Weak<RefCell<ToDo>>) -> ToDo {
         let sub_tasks: Vec<Rc<RefCell<ToDo>>> = Vec::new();
         ToDo {
@@ -33,6 +38,7 @@ impl ToDo {
         }
     }
 
+    /// Find the task hierachy.
     pub fn task_path(&self, path: &mut String) {
         if let Some(parent_todo) = self.parent.upgrade() {
             let previous = format!("{}: ", &parent_todo.borrow().task);
@@ -42,6 +48,7 @@ impl ToDo {
         ()
     }
 
+    /// Convert todo list node to string format.
     fn to_string(&self) -> String {
         let mut output = String::new();
 
@@ -80,6 +87,7 @@ impl ToDo {
         output
     }
 
+    /// Convert all sub-tasks to string format.
     fn all_to_string(&self, tabs: usize, buf: &mut String) {
         for sub_task_rc in self.sub_tasks.iter() {
             let sub_task = sub_task_rc.borrow();
@@ -91,6 +99,7 @@ impl ToDo {
         }
     }
 
+    /// Save todo list tree in string format to text file.
     fn save_current(&self, filename: &Path) {
         let mut buffer = String::new();
         self.all_to_string(0, &mut buffer);
@@ -113,6 +122,7 @@ impl ToDo {
         info!("Todo list saved to file.");
     }
 
+    /// Traverse tree back to root node and save.
     pub fn save(&self, filename: &Path) {
         if let Some(parent_todo) = self.parent.upgrade() {
             parent_todo.borrow().save(filename)
@@ -121,6 +131,7 @@ impl ToDo {
         }
     }
 
+    /// Convert from string format into ToDo node.
     pub fn from_string(text: &str, parent: Weak<RefCell<ToDo>>) -> ToDo {
         let complete = match text.chars().nth(1) {
             Some(ch) => {
