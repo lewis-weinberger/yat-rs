@@ -1,6 +1,7 @@
 # *yat* -- yet another todo-list
 >A simple terminal todo-list manager written in Rust. 
 
+[![crates.io](https://img.shields.io/crates/v/yat)](https://crates.io/crates/yat)
 
 **Table of contents**
 1. [Installation](#installation)
@@ -9,7 +10,7 @@
 4. [To Do](#to-do)
 5. [License](#license)
 
-**Disclaimer**: this is a work in progress! When it reaches a usable state hopefully it will be published on crates.io.
+**Disclaimer**: this is a work in progress! Version 0.1.0 is available on [crates.io](https://crates.io/crates/yat).
 
 <a name="installation"></a>
 ## Installation
