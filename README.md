@@ -21,6 +21,12 @@ Requires an installation of [Rust](https://www.rust-lang.org/tools/install). Rec
     $ cd yat-rs                                   # change into source directory
     $ cargo run --release                         # compile and run
 
+The latest version can also be installed directly from crates.io:
+
+    $ cargo install yat
+
+By default this downloads and builds the **yat** crate, installing the binary in `$HOME/.cargo/bin/`.
+
 <a name="usage"></a>
 ## Usage
 Can be run with cargo from the root of the directory. The terminal user interface (TUI) is built around the excellent [termion](https://crates.io/crates/termion) crate. Logging is provided by the nifty [fern](https://crates.io/crates/fern) and [log](https://crates.io/crates/log) crates; this will print to stderr, but these will be missed behind the TUI, so it might be useful to redirect them to a file:
