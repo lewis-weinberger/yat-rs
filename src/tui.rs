@@ -10,16 +10,16 @@ use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, style};
 
 /// A wrapper around the terminal for creating a window.
-pub struct Window<'a> {
+pub struct Window {
     /// Key input from Stdin.
     stdin: Keys<Stdin>,
     /// Stdout, with terminal in raw-mode (no input line buffering, no echo).
     stdout: RawTerminal<Stdout>,
     /// Yat configuration.
-    pub config: Config<'a>,
+    pub config: Config,
 }
 
-impl<'a> Drop for Window<'a> {
+impl Drop for Window {
     /// Ensure the terminal is reset if the Window is dropped.
     fn drop(&mut self) {
         self.endwin();
@@ -27,9 +27,9 @@ impl<'a> Drop for Window<'a> {
     }
 }
 
-impl<'a> Window<'a> {
+impl Window {
     /// Create a new Window, using terminal's stdin and stdout.
-    pub fn new(stdin: Stdin, stdout: Stdout, config: Config<'a>) -> Result<Window<'a>, ()> {
+    pub fn new(stdin: Stdin, stdout: Stdout, config: Config) -> Result<Window, ()> {
         let raw = match stdout.into_raw_mode() {
             Ok(out) => out,
             Err(_) => {
@@ -92,32 +92,32 @@ impl<'a> Window<'a> {
     /// Add colour to subsequent printed text.
     pub fn colour_on(&mut self, fg: usize, bg: usize) {
         let fgcol = match fg {
-            0 => self.config.colour0,
-            1 => self.config.colour1,
-            2 => self.config.colour2,
-            3 => self.config.colour3,
-            4 => self.config.colour4,
-            5 => self.config.colour5,
-            6 => self.config.colour6,
-            7 => self.config.colour7,
-            8 => self.config.colourfg,
+            0 => self.config.colour0.fg(),
+            1 => self.config.colour1.fg(),
+            2 => self.config.colour2.fg(),
+            3 => self.config.colour3.fg(),
+            4 => self.config.colour4.fg(),
+            5 => self.config.colour5.fg(),
+            6 => self.config.colour6.fg(),
+            7 => self.config.colour7.fg(),
+            8 => self.config.colourfg.fg(),
             _ => return (),
         };
 
         let bgcol = match bg {
-            0 => self.config.colour0,
-            1 => self.config.colour1,
-            2 => self.config.colour2,
-            3 => self.config.colour3,
-            4 => self.config.colour4,
-            5 => self.config.colour5,
-            6 => self.config.colour6,
-            7 => self.config.colour7,
-            8 => self.config.colourbg,
+            0 => self.config.colour0.bg(),
+            1 => self.config.colour1.bg(),
+            2 => self.config.colour2.bg(),
+            3 => self.config.colour3.bg(),
+            4 => self.config.colour4.bg(),
+            5 => self.config.colour5.bg(),
+            6 => self.config.colour6.bg(),
+            7 => self.config.colour7.bg(),
+            8 => self.config.colourbg.bg(),
             _ => return (),
         };
-
-        write!(self.stdout, "{}{}", color::Fg(fgcol), color::Bg(bgcol)).unwrap_or_else(|err| {
+        
+        write!(self.stdout, "{}{}", fgcol, bgcol).unwrap_or_else(|err| {
             warn!("Unable to turn colour on: {}", err);
         });
     }
@@ -127,8 +127,8 @@ impl<'a> Window<'a> {
         write!(
             self.stdout,
             "{}{}",
-            color::Fg(self.config.colourfg),
-            color::Bg(self.config.colourbg)
+            self.config.colourfg.fg(),
+            self.config.colourbg.bg()
         )
         .unwrap_or_else(|err| {
             warn!("Unable to turn colour off: {}", err);
@@ -178,20 +178,20 @@ impl<'a> Window<'a> {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
 
-        self.mvprintw(y + 1 - height, x, self.config.ulcorner);
-        self.mvprintw(y, x, self.config.llcorner);
+        self.mvprintw(y + 1 - height, x, &self.config.ulcorner.clone());
+        self.mvprintw(y, x, &self.config.llcorner.clone());
 
-        self.mvprintw(y + 1 - height, x + width - 1, self.config.urcorner);
-        self.mvprintw(y, x + width - 1, self.config.lrcorner);
+        self.mvprintw(y + 1 - height, x + width - 1, &self.config.urcorner.clone());
+        self.mvprintw(y, x + width - 1, &self.config.lrcorner.clone());
 
         for j in (y + 2 - height)..y {
-            self.mvprintw(j, x, self.config.vline);
-            self.mvprintw(j, x + width - 1, self.config.vline);
+            self.mvprintw(j, x, &self.config.vline.clone());
+            self.mvprintw(j, x + width - 1, &self.config.vline.clone());
         }
 
         for i in (x + 1)..(x + width - 1) {
-            self.mvprintw(y, i, self.config.hline);
-            self.mvprintw(y + 1 - height, i, self.config.hline);
+            self.mvprintw(y, i, &self.config.hline.clone());
+            self.mvprintw(y + 1 - height, i, &self.config.hline.clone());
         }
     }
 

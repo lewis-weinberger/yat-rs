@@ -1,5 +1,4 @@
 /// Configuration functionality for controlling appearance and keybindings.
-
 use dirs::home_dir;
 use log::{info, warn};
 use serde::Deserialize;
@@ -60,43 +59,91 @@ struct Keys {
     decrease: Option<char>,
 }
 
+/// Wrapper around Rgb and ANSI colours.
+pub enum Colour {
+    Rgb(Vec<u8>),
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    Reset,
+}
+
+impl Colour {
+    /// Return a String with foreground colour escape code.
+    pub fn fg(&self) -> String {
+        match self {
+            Self::Rgb(rgb) => color::Fg(color::Rgb(rgb[0], rgb[1], rgb[2])).to_string(),
+            Self::Black => color::Fg(color::Black).to_string(),
+            Self::Red => color::Fg(color::Red).to_string(),
+            Self::Green => color::Fg(color::Green).to_string(),
+            Self::Yellow => color::Fg(color::Yellow).to_string(),
+            Self::Blue => color::Fg(color::Blue).to_string(),
+            Self::Magenta => color::Fg(color::Magenta).to_string(),
+            Self::Cyan => color::Fg(color::Cyan).to_string(),
+            Self::White => color::Fg(color::White).to_string(),
+            Self::Reset => color::Fg(color::Reset).to_string(),
+        }
+    }
+
+    /// Return a String with background colour escape code.
+    pub fn bg(&self) -> String {
+        match self {
+            Self::Rgb(rgb) => color::Bg(color::Rgb(rgb[0], rgb[1], rgb[2])).to_string(),
+            Self::Black => color::Bg(color::Black).to_string(),
+            Self::Red => color::Bg(color::Red).to_string(),
+            Self::Green => color::Bg(color::Green).to_string(),
+            Self::Yellow => color::Bg(color::Yellow).to_string(),
+            Self::Blue => color::Bg(color::Blue).to_string(),
+            Self::Magenta => color::Bg(color::Magenta).to_string(),
+            Self::Cyan => color::Bg(color::Cyan).to_string(),
+            Self::White => color::Bg(color::White).to_string(),
+            Self::Reset => color::Bg(color::Reset).to_string(),
+        }
+    }
+}
+
 /// Yat's configuration.
-pub struct Config<'a> {
+pub struct Config {
     /// Border configuration.
     /// Horizontal border character(s)
-    pub hline: &'a str,
+    pub hline: String,
     /// Vertical border character(s)
-    pub vline: &'a str,
+    pub vline: String,
     /// Upper left border character(s)
-    pub ulcorner: &'a str,
+    pub ulcorner: String,
     /// Upper right border character(s)
-    pub urcorner: &'a str,
+    pub urcorner: String,
     /// Lower left border character(s)
-    pub llcorner: &'a str,
+    pub llcorner: String,
     /// Lower right border character(s)
-    pub lrcorner: &'a str,
+    pub lrcorner: String,
 
     /// Colour-scheme configuration.
     /// Black colour.
-    pub colour0: &'a dyn color::Color,
+    pub colour0: Colour,
     /// Red colour.
-    pub colour1: &'a dyn color::Color,
+    pub colour1: Colour,
     /// Green colour.
-    pub colour2: &'a dyn color::Color,
+    pub colour2: Colour,
     /// Yellow colour.
-    pub colour3: &'a dyn color::Color,
+    pub colour3: Colour,
     /// Blue colour.
-    pub colour4: &'a dyn color::Color,
+    pub colour4: Colour,
     /// Magenta colour.
-    pub colour5: &'a dyn color::Color,
+    pub colour5: Colour,
     /// Cyan colour.
-    pub colour6: &'a dyn color::Color,
+    pub colour6: Colour,
     /// White colour.
-    pub colour7: &'a dyn color::Color,
+    pub colour7: Colour,
     /// Foreground colour.
-    pub colourfg: &'a dyn color::Color,
+    pub colourfg: Colour,
     /// Background colour.
-    pub colourbg: &'a dyn color::Color,
+    pub colourbg: Colour,
 
     /// Keybinding configuration.
     /// Key to quit yat.
@@ -129,30 +176,30 @@ pub struct Config<'a> {
     pub decrease: Key,
 }
 
-impl<'a> Config<'a> {
+impl Config {
     /// Create default configuration.
-    pub fn default() -> Config<'static> {
+    pub fn default() -> Config {
         // Default border characters
-        let hline = "─";
-        let vline = "│";
-        let ulcorner = "┌";
-        let urcorner = "┐";
-        let llcorner = "└";
-        let lrcorner = "┘";
+        let hline = String::from("─");
+        let vline = String::from("│");
+        let ulcorner = String::from("┌");
+        let urcorner = String::from("┐");
+        let llcorner = String::from("└");
+        let lrcorner = String::from("┘");
 
         // Default ANSI terminal colours
-        let colour0 = &color::Black;
-        let colour1 = &color::Red;
-        let colour2 = &color::Green;
-        let colour3 = &color::Yellow;
-        let colour4 = &color::Blue;
-        let colour5 = &color::Magenta;
-        let colour6 = &color::Cyan;
-        let colour7 = &color::White;
+        let colour0 = Colour::Black;
+        let colour1 = Colour::Red;
+        let colour2 = Colour::Green;
+        let colour3 = Colour::Yellow;
+        let colour4 = Colour::Blue;
+        let colour5 = Colour::Magenta;
+        let colour6 = Colour::Cyan;
+        let colour7 = Colour::White;
 
         // Default foreground and background colours
-        let colourfg = &color::Reset;
-        let colourbg = &color::Reset;
+        let colourfg = Colour::Reset;
+        let colourbg = Colour::Reset;
 
         // Default keybindings
         let quit = Key::Char('q');
@@ -205,147 +252,18 @@ impl<'a> Config<'a> {
     }
 }
 
-/// A buffer that can hold loaded configuration.
-pub struct ConfigBuffer {
-    pub hline: Option<String>,
-    pub vline: Option<String>,
-    pub ulcorner: Option<String>,
-    pub urcorner: Option<String>,
-    pub llcorner: Option<String>,
-    pub lrcorner: Option<String>,
-    pub colour0: Option<color::Rgb>,
-    pub colour1: Option<color::Rgb>,
-    pub colour2: Option<color::Rgb>,
-    pub colour3: Option<color::Rgb>,
-    pub colour4: Option<color::Rgb>,
-    pub colour5: Option<color::Rgb>,
-    pub colour6: Option<color::Rgb>,
-    pub colour7: Option<color::Rgb>,
-    pub colourfg: Option<color::Rgb>,
-    pub colourbg: Option<color::Rgb>,
-    pub quit: Option<Key>,
-    pub back: Option<Key>,
-    pub save: Option<Key>,
-    pub add: Option<Key>,
-    pub edit: Option<Key>,
-    pub delete: Option<Key>,
-    pub task_up: Option<Key>,
-    pub task_down: Option<Key>,
-    pub up: Option<Key>,
-    pub down: Option<Key>,
-    pub focus: Option<Key>,
-    pub complete: Option<Key>,
-    pub increase: Option<Key>,
-    pub decrease: Option<Key>,
-}
-
-impl ConfigBuffer {
-    /// Create a Config from a buffer.
-    pub fn config<'a>(&'a self, default: Config<'a>) -> Config<'a> {
-        macro_rules! choose_config {
-            ($attr:ident, $name:expr) => {
-                match &self.$attr {
-                    Some(val) => {
-                        info!("Using custom {}.", $name);
-                        val
-                    }
-                    None => default.$attr,
-                }
-            };
-        }
-
-        // Borders
-        let hline = choose_config!(hline, "hline");
-        let vline = choose_config!(vline, "vline");
-        let ulcorner = choose_config!(ulcorner, "ulcorner");
-        let urcorner = choose_config!(urcorner, "urcorner");
-        let llcorner = choose_config!(llcorner, "llcorner");
-        let lrcorner = choose_config!(lrcorner, "lrcorner");
-
-        // Colours
-        let colour0 = choose_config!(colour0, "colour0");
-        let colour1 = choose_config!(colour1, "colour1");
-        let colour2 = choose_config!(colour2, "colour2");
-        let colour3 = choose_config!(colour3, "colour3");
-        let colour4 = choose_config!(colour4, "colour4");
-        let colour5 = choose_config!(colour5, "colour5");
-        let colour6 = choose_config!(colour6, "colour6");
-        let colour7 = choose_config!(colour7, "colour7");
-        let colourfg = choose_config!(colourfg, "colourfg");
-        let colourbg = choose_config!(colourbg, "colourbg");
-
-        macro_rules! choose_config_val {
-            ($attr:ident, $name:expr) => {
-                match self.$attr {
-                    Some(val) => {
-                        info!("Using custom {}.", $name);
-                        val
-                    }
-                    None => default.$attr,
-                }
-            };
-        }
-
-        // Keys
-        let quit = choose_config_val!(quit, "quit key");
-        let back = choose_config_val!(back, "back key");
-        let save = choose_config_val!(save, "save key");
-        let add = choose_config_val!(add, "add key");
-        let edit = choose_config_val!(edit, "edit key");
-        let delete = choose_config_val!(delete, "delete key");
-        let task_up = choose_config_val!(task_up, "task_up key");
-        let task_down = choose_config_val!(task_down, "task_down key");
-        let up = choose_config_val!(up, "up key");
-        let down = choose_config_val!(down, "down key");
-        let focus = choose_config_val!(focus, "focus key");
-        let complete = choose_config_val!(complete, "complete key");
-        let increase = choose_config_val!(increase, "increase key");
-        let decrease = choose_config_val!(decrease, "decrease key");
-
-        Config {
-            hline,
-            vline,
-            ulcorner,
-            urcorner,
-            llcorner,
-            lrcorner,
-            colour0,
-            colour1,
-            colour2,
-            colour3,
-            colour4,
-            colour5,
-            colour6,
-            colour7,
-            colourfg,
-            colourbg,
-            quit,
-            back,
-            save,
-            add,
-            edit,
-            delete,
-            task_up,
-            task_down,
-            up,
-            down,
-            focus,
-            complete,
-            increase,
-            decrease,
-        }
-    }
-}
-
 /// Check for file at ~/.todo/config.toml and if present load
 /// user configuration.
-pub fn check_for_config() -> Option<ConfigBuffer> {
-    // Check for config file at ~/.todo/config.toml 
+pub fn check_for_config() -> Config {
+    // Default configuration
+    let default = Config::default();
+    
+    // Check for config file at ~/.todo/config.toml
     let mut filename = match home_dir() {
         Some(dir) => dir,
         None => {
             warn!("Unable to locate home directory.");
-            return None;
+            return default;
         }
     };
     filename.push(".todo/config.toml");
@@ -357,7 +275,7 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         }
         Err(err) => {
             warn!("Unable to read ~/.todo/config.toml: {}", err);
-            return None;
+            return default;
         }
     };
 
@@ -368,115 +286,63 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         }
         Err(err) => {
             warn!("Unable to parse ~/.todo/config.toml: {}", err);
-            return None;
+            return default;
         }
     };
 
-    let (hline, vline, ulcorner, urcorner, llcorner, lrcorner) = match toml_config.borders {
-        Some(border) => (
-            border.hline,
-            border.vline,
-            border.ulcorner,
-            border.urcorner,
-            border.llcorner,
-            border.lrcorner,
-        ),
-        None => (None, None, None, None, None, None),
-    };
-    let (
-        colour0,
-        colour1,
-        colour2,
-        colour3,
-        colour4,
-        colour5,
-        colour6,
-        colour7,
-        colourfg,
-        colourbg,
-    ) = match toml_config.colours {
-        Some(colours) => (
-            colours.colour0,
-            colours.colour1,
-            colours.colour2,
-            colours.colour3,
-            colours.colour4,
-            colours.colour5,
-            colours.colour6,
-            colours.colour7,
-            colours.colourfg,
-            colours.colourbg,
-        ),
-        None => (None, None, None, None, None, None, None, None, None, None),
-    };
+    // Use new config if present, otherwise default config
+    macro_rules! choose_config {
+        ($kind:ident, $attr:ident, $func:ident, $name:expr) => {
+            match &toml_config.$kind {
+                Some(kind) => {
+                    match &kind.$attr {
+                        Some(attr) => {
+                            info!("Using custom {}.", $name);
+                            $func(attr.clone())
+                        },
+                        None => default.$attr,
+                    }
+                },
+                None => default.$attr,
+            }
+        };
+    }
 
-    let (
-        quit,
-        back,
-        save,
-        add,
-        edit,
-        delete,
-        task_up,
-        task_down,
-        up,
-        down,
-        focus,
-        complete,
-        increase,
-        decrease,
-    ) = match toml_config.keys {
-        Some(keys) => (
-            keys.quit,
-            keys.back,
-            keys.save,
-            keys.add,
-            keys.edit,
-            keys.delete,
-            keys.task_up,
-            keys.task_down,
-            keys.up,
-            keys.down,
-            keys.focus,
-            keys.complete,
-            keys.increase,
-            keys.decrease,
-        ),
-        None => (
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        ),
-    };
-
-    Some(ConfigBuffer {
-        hline,
-        vline,
-        ulcorner,
-        urcorner,
-        llcorner,
-        lrcorner,
-        colour0: colour0.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour1: colour1.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour2: colour2.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour3: colour3.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour4: colour4.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour5: colour5.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour6: colour6.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colour7: colour7.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colourfg: colourfg.map(|x| color::Rgb(x[0], x[1], x[2])),
-        colourbg: colourbg.map(|x| color::Rgb(x[0], x[1], x[2])),
-        quit: quit.map(|x| Key::Char(x)),
-        back: back.map(|x| Key::Char(x)),
-        save: save.map(|x| Key::Char(x)),
-        add: add.map(|x| Key::Char(x)),
-        edit: edit.map(|x| Key::Char(x)),
-        delete: delete.map(|x| Key::Char(x)),
-        task_up: task_up.map(|x| Key::Char(x)),
-        task_down: task_down.map(|x| Key::Char(x)),
-        up: up.map(|x| Key::Char(x)),
-        down: down.map(|x| Key::Char(x)),
-        focus: focus.map(|x| Key::Char(x)),
-        complete: complete.map(|x| Key::Char(x)),
-        increase: increase.map(|x| Key::Char(x)),
-        decrease: decrease.map(|x| Key::Char(x)),
-    })
+    // Conversions between raw input and Config attribute types.
+    fn border_convert(x: String) -> String { String::from(x) }
+    fn colour_convert(x: Vec<u8>) -> Colour { Colour::Rgb(x) }
+    fn key_convert(x: char) -> Key { Key::Char(x) }
+    
+    Config {
+        hline: choose_config!(borders, hline, border_convert, "hline"),
+        vline: choose_config!(borders, vline, border_convert, "vline"),
+        ulcorner: choose_config!(borders, ulcorner, border_convert, "ulcorner"),
+        urcorner: choose_config!(borders, urcorner, border_convert, "urcorner"),
+        llcorner: choose_config!(borders, llcorner, border_convert, "llcorner"),
+        lrcorner: choose_config!(borders, lrcorner, border_convert, "lrcorner"),
+        colour0: choose_config!(colours, colour0, colour_convert, "colour0"),
+        colour1: choose_config!(colours, colour1, colour_convert, "colour1"),
+        colour2: choose_config!(colours, colour2, colour_convert, "colour2"),
+        colour3: choose_config!(colours, colour3, colour_convert, "colour3"),
+        colour4: choose_config!(colours, colour4, colour_convert, "colour4"),
+        colour5: choose_config!(colours, colour5, colour_convert, "colour5"),
+        colour6: choose_config!(colours, colour6, colour_convert, "colour6"),
+        colour7: choose_config!(colours, colour7, colour_convert, "colour7"),
+        colourfg: choose_config!(colours, colourfg, colour_convert, "colourfg"),
+        colourbg: choose_config!(colours, colourbg, colour_convert, "colourbg"),
+        quit: choose_config!(keys, quit, key_convert, "quit key"),
+        back: choose_config!(keys, back, key_convert, "back key"),
+        save: choose_config!(keys, save, key_convert, "save key"),
+        add: choose_config!(keys, add, key_convert, "add key"),
+        edit: choose_config!(keys, edit, key_convert, "edit key"),
+        delete: choose_config!(keys, delete, key_convert, "delete key"),
+        task_up: choose_config!(keys, task_up, key_convert, "task_up key"),
+        task_down: choose_config!(keys, task_down, key_convert, "task_down key"),
+        up: choose_config!(keys, up, key_convert, "up key"),
+        down: choose_config!(keys, down, key_convert, "down key"),
+        focus: choose_config!(keys, focus, key_convert, "focus key"),
+        complete: choose_config!(keys, complete, key_convert, "complete key"),
+        increase: choose_config!(keys, increase, key_convert, "increase key"),
+        decrease: choose_config!(keys, decrease, key_convert, "decrease key"),
+    }
 }

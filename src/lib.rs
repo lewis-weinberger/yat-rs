@@ -71,8 +71,8 @@ pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
 
 /// Wrapper around the terminal user interface (Window) and the todo list
 /// tree structure (ToDo).
-pub struct View<'a> {
-    window: Window<'a>,
+pub struct View {
+    window: Window,
     current_task: Rc<RefCell<ToDo>>,
     selection: Option<usize>,
     root: bool,
@@ -80,9 +80,9 @@ pub struct View<'a> {
     save_file: Option<PathBuf>,
 }
 
-impl<'a> View<'a> {
+impl View {
     /// Create view of a new todo list.
-    pub fn new(config: config::Config<'a>) -> Result<View<'a>, ()> {
+    pub fn new(config: config::Config) -> Result<View, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
         let stdout = io::stdout();
@@ -101,7 +101,7 @@ impl<'a> View<'a> {
     }
 
     /// Create view of a todo list loaded from save file.
-    pub fn new_from_save(filename: PathBuf, config: config::Config<'a>) -> Result<View<'a>, ()> {
+    pub fn new_from_save(filename: PathBuf, config: config::Config) -> Result<View, ()> {
         let root = ToDo::new("", Weak::new());
         let stdin = io::stdin();
         let stdout = io::stdout();

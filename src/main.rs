@@ -1,7 +1,7 @@
 use std::env;
 use std::process;
 use yat::{
-    config::{check_for_config, Config},
+    config::check_for_config,
     logger::setup_logger,
     look_for_save, View,
 };
@@ -11,14 +11,7 @@ fn main() {
     setup_logger();
 
     // Configuration
-    let mut config = Config::default();
-    let found_config = check_for_config();
-    match &found_config {
-        Some(configbuf) => {
-            config = configbuf.config(config);
-        }
-        None => (),
-    }
+    let config = check_for_config();
 
     // Check for existence of valid save file
     let view_result = match look_for_save(env::args()) {
