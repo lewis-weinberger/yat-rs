@@ -382,19 +382,19 @@ impl<'a> View<'a> {
             match elem.borrow().priority {
                 Some(Priority::Low) => {
                     self.window.colour_on(2, 8);
-                    self.window.mvprintw(y, 6, " (C)");
+                    self.window.mvprintw(y, 6, " (C) ");
                     self.window
                         .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
                 }
                 Some(Priority::Medium) => {
                     self.window.colour_on(3, 8);
-                    self.window.mvprintw(y, 6, " (B)");
+                    self.window.mvprintw(y, 6, " (B) ");
                     self.window
                         .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));                    
                 }
                 Some(Priority::High) => {
                     self.window.colour_on(1, 8);
-                    self.window.mvprintw(y, 6, " (A)");
+                    self.window.mvprintw(y, 6, " (A) ");
                     self.window
                         .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
                 }
@@ -431,7 +431,7 @@ impl<'a> View<'a> {
                         match sub_elem.borrow().priority {
                             Some(Priority::Low) => {
                                 self.window.colour_on(2, 8);
-                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (C) ");
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
@@ -440,7 +440,7 @@ impl<'a> View<'a> {
                             }
                             Some(Priority::Medium) => {
                                 self.window.colour_on(3, 8);
-                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (B) ");
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
@@ -449,7 +449,7 @@ impl<'a> View<'a> {
                             }
                             Some(Priority::High) => {
                                 self.window.colour_on(1, 8);
-                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (A) ");
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
