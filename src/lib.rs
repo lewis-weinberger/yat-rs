@@ -372,23 +372,34 @@ impl<'a> View<'a> {
                 self.window.mvprintw(y, 4, "X");
                 self.window.colour_off();
                 self.window.mvprintw(y, 5, "]");
+                self.window
+                    .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
             } else {
                 self.window.mvprintw(y, 3, "[ ]");
+                self.window
+                    .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
             }
             match elem.borrow().priority {
                 Some(Priority::Low) => {
                     self.window.colour_on(2, 8);
+                    self.window.mvprintw(y, 6, " (C)");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
                 }
                 Some(Priority::Medium) => {
                     self.window.colour_on(3, 8);
+                    self.window.mvprintw(y, 6, " (B)");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));                    
                 }
                 Some(Priority::High) => {
                     self.window.colour_on(1, 8);
+                    self.window.mvprintw(y, 6, " (A)");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
                 }
                 _ => (),
             };
-            self.window
-                .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
             self.window.colour_off();
             y += 1;
 
