@@ -384,19 +384,19 @@ impl<'a> View<'a> {
                     self.window.colour_on(2, 8);
                     self.window.mvprintw(y, 6, " (C) ");
                     self.window
-                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));
                 }
                 Some(Priority::Medium) => {
                     self.window.colour_on(3, 8);
                     self.window.mvprintw(y, 6, " (B) ");
                     self.window
-                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));                    
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));                    
                 }
                 Some(Priority::High) => {
                     self.window.colour_on(1, 8);
                     self.window.mvprintw(y, 6, " (A) ");
                     self.window
-                        .wrap_print(y, 11, xmax / 2 - 8, &format!("{}", elem.borrow().task));
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));
                 }
                 _ => (),
             };
@@ -435,7 +435,7 @@ impl<'a> View<'a> {
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
-                                xmax / 2 - 8,
+                                xmax / 2 - 12,
                                 &format!("{}", sub_elem.borrow().task));
                             }
                             Some(Priority::Medium) => {
@@ -444,7 +444,7 @@ impl<'a> View<'a> {
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
-                                xmax / 2 - 8,
+                                xmax / 2 - 12,
                                 &format!("{}", sub_elem.borrow().task));
                             }
                             Some(Priority::High) => {
@@ -453,7 +453,7 @@ impl<'a> View<'a> {
                                 self.window.wrap_print(
                                 yy,
                                 xmax / 2 + 11,
-                                xmax / 2 - 8,
+                                xmax / 2 - 12,
                                 &format!("{}", sub_elem.borrow().task));
                             }
                             _ => (),
