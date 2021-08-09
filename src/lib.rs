@@ -400,6 +400,7 @@ impl<'a> View<'a> {
                 }
                 _ => (),
             };
+
             self.window.colour_off();
             y += 1;
 
@@ -413,27 +414,51 @@ impl<'a> View<'a> {
                             self.window.mvprintw(yy, xmax / 2 + 4, "X");
                             self.window.colour_off();
                             self.window.mvprintw(yy, xmax / 2 + 5, "]");
-                        } else {
-                            self.window.mvprintw(yy, xmax / 2 + 3, "[ ]");
-                        }
-                        match sub_elem.borrow().priority {
-                            Some(Priority::Low) => {
-                                self.window.colour_on(2, 8);
-                            }
-                            Some(Priority::Medium) => {
-                                self.window.colour_on(3, 8);
-                            }
-                            Some(Priority::High) => {
-                                self.window.colour_on(1, 8);
-                            }
-                            _ => (),
-                        };
-                        self.window.wrap_print(
+                            self.window.wrap_print(
                             yy,
                             xmax / 2 + 7,
                             xmax / 2 - 8,
                             &format!("{}", sub_elem.borrow().task),
                         );
+                        } else {
+                            self.window.mvprintw(yy, xmax / 2 + 3, "[ ]");
+                            self.window.wrap_print(
+                            yy,
+                            xmax / 2 + 7,
+                            xmax / 2 - 8,
+                            &format!("{}", sub_elem.borrow().task));
+                        }
+                        match sub_elem.borrow().priority {
+                            Some(Priority::Low) => {
+                                self.window.colour_on(2, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 8,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            Some(Priority::Medium) => {
+                                self.window.colour_on(3, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 8,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            Some(Priority::High) => {
+                                self.window.colour_on(1, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (C)");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 8,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            _ => (),
+                        };
+
                         self.window.colour_off();
                         yy += 1;
                     }
