@@ -230,6 +230,24 @@ impl<'a> View<'a> {
                 None => (),
             }
             if self.quit {
+                        let current = self.current_task.borrow();
+                        let filename = match self.save_file.clone() {
+                        Some(f) => f,
+                        None => {
+                            let mut buffer = match home_dir() {
+                        Some(dir) => dir,
+                        None => {
+                            warn!("Unable to locate home directory.");
+                            return;
+                    }
+                };
+                buffer.push(".todo/save.txt");
+                buffer
+            }
+        };
+
+
+                current.save(filename.as_path());
                 self.window.endwin();
                 break;
             }
