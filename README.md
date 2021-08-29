@@ -1,5 +1,5 @@
 # *yat* -- yet another todo-list
->A simple terminal todo-list manager written in Rust. 
+>A simple terminal todo-list manager written in Rust.
 
 [![crates.io](https://img.shields.io/crates/v/yat)](https://crates.io/crates/yat)
 
@@ -15,7 +15,7 @@
 <a name="installation"></a>
 ## Installation
 Requires an installation of [Rust](https://www.rust-lang.org/tools/install). Recommended build profile is release:
-    
+
     $ curl https://sh.rustup.rs -sSf | sh         # install Rust
     $ git clone https://github.com/drvog/yat-rs   # clone repository
     $ cd yat-rs                                   # change into source directory
@@ -51,6 +51,7 @@ Once running, **yat** uses the following default key bindings:
 |Space    | mark task as complete       |
 |>        | increase task priority      |
 |<        | decrease task priority      |
+|r        | sort tasks by priority      |
 
 The user interface shows 4 panels: parent task, tasks, sub-tasks and selection. The tasks panel is the main panel, which allows you to navigate between tasks.
 
@@ -59,7 +60,7 @@ The user interface shows 4 panels: parent task, tasks, sub-tasks and selection. 
 The layout of the task on the panel is as follows:
 
     > [ ] todo
-    │  │   │         
+    │  │   │
     │  │   └─ this is the content of the task (colour indicates priority).
     │  │
     │  └─ this shows task completion: [X] = completed, [ ] = not completed.
@@ -69,13 +70,13 @@ The layout of the task on the panel is as follows:
 Usually **yat** will save to $HOME/.todo/save.txt, which will be created the first time it runs. You can specify a custom file to load (or create) by passing it as a first argument on the command line. The formatting of the save file is as follows:
 
     [ ] ( ) todo
-     │   │   │         
+     │   │   │
      │   │   └─ this is the content of the task.
      │   │
      │   └─ this shows task priority: ( ) = no priority, (C) = low priority,
      │      (B) = medium priority, (A) = high priority.
      │
-     └─ this shows task completion: [X] = completed, [ ] = not completed. 
+     └─ this shows task completion: [X] = completed, [ ] = not completed.
 
 <a name="customisation"></a>
 ## Customisation
@@ -93,7 +94,7 @@ It is possible to tweak the appearance and keybindings of **yat** at runtime usi
     [colours]                   # Colourscheme customisation
     colour0 = [88, 110, 117]    # black
     colour1 = [220, 50, 47]     # red
-    colour2 = [133, 153, 0]     # green 
+    colour2 = [133, 153, 0]     # green
     colour3 = [181, 137, 0]     # yellow
     colour4 = [38, 139, 210]    # blue
     colour5 = [211, 54, 130]    # magenta
@@ -102,7 +103,7 @@ It is possible to tweak the appearance and keybindings of **yat** at runtime usi
     colourfg = [131, 148, 150]  # foreground
     colourbg = [0, 43, 54]      # background
 
-    [keys]                      # Keybinding customisation 
+    [keys]                      # Keybinding customisation
     quit = 'q'                  # quit
     back = 'h'                  # return focus to parent
     save = 'w'                  # write list to save file

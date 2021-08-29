@@ -226,6 +226,7 @@ impl<'a> View<'a> {
                 Some(key) if key == self.window.config.down => self.move_selection(false),
                 Some(key) if key == self.window.config.increase => self.increase_priority(),
                 Some(key) if key == self.window.config.decrease => self.decrease_priority(),
+                Some(key) if key == self.window.config.sort => self.sort_by_priority(),
                 Some(_) => (),
                 None => (),
             }
@@ -713,6 +714,11 @@ impl<'a> View<'a> {
         };
 
         current.save(filename.as_path())
+    }
+
+    /// Sort sub-tasks by priority.
+    fn sort_by_priority(&mut self) {
+        self.current_task.borrow_mut().sort_by_priority()
     }
 }
 

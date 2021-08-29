@@ -8,7 +8,7 @@ use std::path::Path;
 use std::rc::{Rc, Weak};
 
 /// Task priority.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Priority {
     Low,
     Medium,
@@ -158,5 +158,13 @@ impl ToDo {
         todo.complete = complete;
         todo.priority = priority;
         todo
+    }
+
+    /// Reorder subtasks based on priority
+    pub fn sort_by_priority(&mut self) {
+        self.sub_tasks.sort_by(|a, b| {
+            // Reverse order so we treat None properly
+            b.borrow().priority.cmp(&a.borrow().priority)
+        });
     }
 }

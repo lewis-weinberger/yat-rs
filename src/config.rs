@@ -58,6 +58,7 @@ struct Keys {
     complete: Option<char>,
     increase: Option<char>,
     decrease: Option<char>,
+    sort: Option<char>,
 }
 
 /// Yat's configuration.
@@ -127,6 +128,8 @@ pub struct Config<'a> {
     pub increase: Key,
     /// Key to decrease task priority.
     pub decrease: Key,
+    /// Key to sort tasks by priority.
+    pub sort: Key,
 }
 
 impl<'a> Config<'a> {
@@ -169,6 +172,7 @@ impl<'a> Config<'a> {
         let complete = Key::Char(' ');
         let increase = Key::Char('>');
         let decrease = Key::Char('<');
+        let sort = Key::Char('r');
 
         Config {
             hline,
@@ -201,6 +205,7 @@ impl<'a> Config<'a> {
             complete,
             increase,
             decrease,
+            sort,
         }
     }
 }
@@ -237,6 +242,7 @@ pub struct ConfigBuffer {
     pub complete: Option<Key>,
     pub increase: Option<Key>,
     pub decrease: Option<Key>,
+    pub sort: Option<Key>,
 }
 
 impl ConfigBuffer {
@@ -301,6 +307,7 @@ impl ConfigBuffer {
         let complete = choose_config_val!(complete, "complete key");
         let increase = choose_config_val!(increase, "increase key");
         let decrease = choose_config_val!(decrease, "decrease key");
+        let sort = choose_config_val!(sort, "sort key");
 
         Config {
             hline,
@@ -333,6 +340,7 @@ impl ConfigBuffer {
             complete,
             increase,
             decrease,
+            sort,
         }
     }
 }
@@ -340,7 +348,7 @@ impl ConfigBuffer {
 /// Check for file at ~/.todo/config.toml and if present load
 /// user configuration.
 pub fn check_for_config() -> Option<ConfigBuffer> {
-    // Check for config file at ~/.todo/config.toml 
+    // Check for config file at ~/.todo/config.toml
     let mut filename = match home_dir() {
         Some(dir) => dir,
         None => {
@@ -425,6 +433,7 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         complete,
         increase,
         decrease,
+        sort,
     ) = match toml_config.keys {
         Some(keys) => (
             keys.quit,
@@ -441,9 +450,10 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
             keys.complete,
             keys.increase,
             keys.decrease,
+            keys.sort,
         ),
         None => (
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
         ),
     };
 
@@ -478,5 +488,6 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         complete: complete.map(|x| Key::Char(x)),
         increase: increase.map(|x| Key::Char(x)),
         decrease: decrease.map(|x| Key::Char(x)),
+        sort: sort.map(|x| Key::Char(x)),
     })
 }
