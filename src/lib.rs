@@ -17,6 +17,7 @@ use std::str::Lines;
 use termion::event::Key;
 use todo::{Priority, ToDo};
 use tui::Window;
+use unicode_width::{UnicodeWidthStr, UnicodeWidthChar};
 
 /// Check if save file exists.
 pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
@@ -284,12 +285,15 @@ impl<'a> View<'a> {
         self.window.show_cursor();
 
         let mut entry = String::from(text);
-        let mut index = entry.len();
+        let mut index = entry.len(); // byte position
+        let mut nchars = UnicodeWidthStr::width(entry.as_str()); // total displayed width
+        let mut chars = nchars; // displayed character position
+        let plen = UnicodeWidthStr::width(prompt);
+
         loop {
-            // Print entry
-            self.window.mvprintw(ymax - 2, 3 + prompt.len(), &entry);
-            self.window
-                .mv(ymax - 2, 3 + (prompt.len() + &entry[0..index].len()));
+            // Print entry and set cursor position
+            self.window.mvprintw(ymax - 2, 3 + plen, &entry);
+            self.window.mv(ymax - 2, 3 + (plen + chars));
             self.window.refresh();
 
             // User input
@@ -301,37 +305,63 @@ impl<'a> View<'a> {
                     } else {
                         entry.insert(index, ch);
                     }
-                    index += 1;
-                    ()
+                    index += ch.len_utf8();
+                    let chwidth = UnicodeWidthChar::width(ch).unwrap();
+                    chars += chwidth;
+                    nchars += chwidth;
                 }
                 Some(Key::Backspace) => {
                     if entry.len() > 0 {
-                        self.window
-                            .mvprintw(ymax - 2, 3 + (prompt.len() + entry.len() - 1), " ");
-                        entry.remove(index - 1);
-                        index -= 1;
+                        let end = index;
+                        while index > 0 {
+                            index -= 1;
+                            if entry.is_char_boundary(index) { break; }
+                        }
+                        let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
+                        while chwidth > 0 {
+                            chars -= 1;
+                            nchars -= 1;
+                            chwidth -= 1;
+                            self.window.mvprintw(ymax - 2, 3 + (plen + nchars), " ");
+                        }
+                        entry.remove(index);
                     }
-                    ()
                 }
                 Some(Key::Delete) => {
                     if entry.len() > 0 && index < entry.len() {
-                        self.window
-                            .mvprintw(ymax - 2, 3 + (prompt.len() + entry.len() - 1), " ");
+                        let mut end = index;
+                        while end < entry.len() {
+                            end += 1;
+                            if entry.is_char_boundary(end) { break; }
+                        }
+                        let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
+                        while chwidth > 0 {
+                            nchars -= 1;
+                            chwidth -= 1;
+                            self.window.mvprintw(ymax - 2, 3 + (plen + nchars), " ");
+                        }
                         entry.remove(index);
                     }
-                    ()
                 }
                 Some(Key::Left) => {
                     if index > 0 {
-                        index -= 1;
+                        let end = index;
+                        while index > 0 {
+                            index -= 1;
+                            if entry.is_char_boundary(index) { break; }
+                        }
+                        chars -= UnicodeWidthStr::width(&entry[index..end]);
                     }
-                    ()
                 }
                 Some(Key::Right) => {
                     if index < entry.len() {
-                        index += 1;
+                        let start = index;
+                        while index < entry.len() {
+                            index += 1;
+                            if entry.is_char_boundary(index) { break; }
+                        }
+                        chars += UnicodeWidthStr::width(&entry[start..index]);
                     }
-                    ()
                 }
                 _ => (),
             }
