@@ -232,6 +232,24 @@ impl<'a> View<'a> {
                 None => (),
             }
             if self.quit {
+                        let current = self.current_task.borrow();
+                        let filename = match self.save_file.clone() {
+                        Some(f) => f,
+                        None => {
+                            let mut buffer = match home_dir() {
+                        Some(dir) => dir,
+                        None => {
+                            warn!("Unable to locate home directory.");
+                            return;
+                    }
+                };
+                buffer.push(".todo/save.txt");
+                buffer
+            }
+        };
+
+
+                current.save(filename.as_path());
                 self.window.endwin();
                 break;
             }
@@ -403,23 +421,35 @@ impl<'a> View<'a> {
                 self.window.mvprintw(y, 4, "X");
                 self.window.colour_off();
                 self.window.mvprintw(y, 5, "]");
+                self.window
+                    .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
             } else {
                 self.window.mvprintw(y, 3, "[ ]");
+                self.window
+                    .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
             }
             match elem.borrow().priority {
                 Some(Priority::Low) => {
                     self.window.colour_on(2, 8);
+                    self.window.mvprintw(y, 6, " (C) ");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));
                 }
                 Some(Priority::Medium) => {
                     self.window.colour_on(3, 8);
+                    self.window.mvprintw(y, 6, " (B) ");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));                    
                 }
                 Some(Priority::High) => {
                     self.window.colour_on(1, 8);
+                    self.window.mvprintw(y, 6, " (A) ");
+                    self.window
+                        .wrap_print(y, 11, xmax / 2 - 12, &format!("{}", elem.borrow().task));
                 }
                 _ => (),
             };
-            self.window
-                .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
+
             self.window.colour_off();
             y += 1;
 
@@ -433,27 +463,51 @@ impl<'a> View<'a> {
                             self.window.mvprintw(yy, xmax / 2 + 4, "X");
                             self.window.colour_off();
                             self.window.mvprintw(yy, xmax / 2 + 5, "]");
-                        } else {
-                            self.window.mvprintw(yy, xmax / 2 + 3, "[ ]");
-                        }
-                        match sub_elem.borrow().priority {
-                            Some(Priority::Low) => {
-                                self.window.colour_on(2, 8);
-                            }
-                            Some(Priority::Medium) => {
-                                self.window.colour_on(3, 8);
-                            }
-                            Some(Priority::High) => {
-                                self.window.colour_on(1, 8);
-                            }
-                            _ => (),
-                        };
-                        self.window.wrap_print(
+                            self.window.wrap_print(
                             yy,
                             xmax / 2 + 7,
                             xmax / 2 - 8,
                             &format!("{}", sub_elem.borrow().task),
                         );
+                        } else {
+                            self.window.mvprintw(yy, xmax / 2 + 3, "[ ]");
+                            self.window.wrap_print(
+                            yy,
+                            xmax / 2 + 7,
+                            xmax / 2 - 8,
+                            &format!("{}", sub_elem.borrow().task));
+                        }
+                        match sub_elem.borrow().priority {
+                            Some(Priority::Low) => {
+                                self.window.colour_on(2, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (C) ");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 12,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            Some(Priority::Medium) => {
+                                self.window.colour_on(3, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (B) ");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 12,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            Some(Priority::High) => {
+                                self.window.colour_on(1, 8);
+                                self.window.mvprintw(yy, xmax / 2 + 6, " (A) ");
+                                self.window.wrap_print(
+                                yy,
+                                xmax / 2 + 11,
+                                xmax / 2 - 12,
+                                &format!("{}", sub_elem.borrow().task));
+                            }
+                            _ => (),
+                        };
+
                         self.window.colour_off();
                         yy += 1;
                     }
