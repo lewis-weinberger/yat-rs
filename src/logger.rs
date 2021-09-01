@@ -7,7 +7,7 @@ pub fn setup_logger() {
             out.finish(format_args!(
                 "{}[{}][{}] {}",
                 chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-                record.line().unwrap_or_else(|| 0),
+                record.line().unwrap_or(0),
                 record.level(),
                 message
             ))
@@ -27,7 +27,6 @@ pub fn setup_logger() {
         Ok(_) => (),
         Err(_) => {
             eprintln!("Logger already called: unable to dispatch!");
-            ()
         }
     };
 }

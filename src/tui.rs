@@ -1,6 +1,5 @@
 /// Terminal user interface (TUI) functionality, with ncurses-like API,
 /// built on top of the termion crate.
-
 use crate::config::Config;
 use log::{error, warn};
 use std::io::{Stdin, Stdout, Write};
@@ -8,6 +7,7 @@ use termion::event::Key;
 use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{clear, color, cursor, style};
+use unicode_width::UnicodeWidthStr;
 
 /// A wrapper around the terminal for creating a window.
 pub struct Window<'a> {
@@ -101,7 +101,7 @@ impl<'a> Window<'a> {
             6 => self.config.colour6,
             7 => self.config.colour7,
             8 => self.config.colourfg,
-            _ => return (),
+            _ => return,
         };
 
         let bgcol = match bg {
@@ -114,7 +114,7 @@ impl<'a> Window<'a> {
             6 => self.config.colour6,
             7 => self.config.colour7,
             8 => self.config.colourbg,
-            _ => return (),
+            _ => return,
         };
 
         write!(self.stdout, "{}{}", color::Fg(fgcol), color::Bg(bgcol)).unwrap_or_else(|err| {
@@ -164,13 +164,21 @@ impl<'a> Window<'a> {
     /// Print text at row y, column x (zero-indexed), truncated to ensure
     /// the text does not spill beyond width.
     pub fn wrap_print(&mut self, y: usize, x: usize, width: usize, text: &str) {
-        let len = text.len();
-        let wid = width as usize - 3;
-        let limit = if len > wid { wid } else { len };
-        self.mvprintw(y, x, &text[..limit]);
-        if len > wid {
+        let len = UnicodeWidthStr::width(text); // displayed width
+        let mut end = text.len();
+        if len > width - 3 {
             self.mvprintw(y, x + width - 3, "...");
+            let mut n = (len - (width - 3)) as isize;
+            let mut m = end;
+            while n > 0 {
+                end -= 1;
+                if text.is_char_boundary(end) {
+                    n -= UnicodeWidthStr::width(&text[end..m]) as isize;
+                    m = end;
+                }
+            }
         }
+        self.mvprintw(y, x, &text[..end]);
     }
 
     /// Print a rectangular border.

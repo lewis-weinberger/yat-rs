@@ -1,7 +1,7 @@
 /// Functionality for storing todo lists in a tree data structure.
-
 use log::{info, warn};
 use std::cell::RefCell;
+use std::fmt;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -45,46 +45,6 @@ impl ToDo {
             path.insert_str(0, &previous);
             parent_todo.borrow().task_path(path);
         }
-        ()
-    }
-
-    /// Convert todo list node to string format.
-    fn to_string(&self) -> String {
-        let mut output = String::new();
-
-        match self.complete {
-            true => {
-                output.push_str("[X] ");
-                ()
-            }
-            false => {
-                output.push_str("[ ] ");
-                ()
-            }
-        }
-
-        match self.priority {
-            Some(Priority::Low) => {
-                output.push_str("(C) ");
-                ()
-            }
-            Some(Priority::Medium) => {
-                output.push_str("(B) ");
-                ()
-            }
-            Some(Priority::High) => {
-                output.push_str("(A) ");
-                ()
-            }
-            None => {
-                output.push_str("( ) ");
-                ()
-            }
-        }
-
-        output.push_str(&self.task);
-        output.push('\n');
-        output
     }
 
     /// Convert all sub-tasks to string format.
@@ -134,13 +94,7 @@ impl ToDo {
     /// Convert from string format into ToDo node.
     pub fn from_string(text: &str, parent: Weak<RefCell<ToDo>>) -> ToDo {
         let complete = match text.chars().nth(1) {
-            Some(ch) => {
-                if ch == 'X' {
-                    true
-                } else {
-                    false
-                }
-            }
+            Some(ch) => ch == 'X',
             None => false,
         };
 
@@ -166,5 +120,23 @@ impl ToDo {
             // Reverse order so we treat None properly
             b.borrow().priority.cmp(&a.borrow().priority)
         });
+    }
+}
+
+impl fmt::Display for ToDo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.complete {
+            true => write!(f, "[X] ")?,
+            false => write!(f, "[ ] ")?,
+        }
+
+        match self.priority {
+            Some(Priority::Low) => write!(f, "(C) ")?,
+            Some(Priority::Medium) => write!(f, "(B) ")?,
+            Some(Priority::High) => write!(f, "(A) ")?,
+            None => write!(f, "( ) ")?,
+        }
+
+        writeln!(f, "{}", &self.task)
     }
 }

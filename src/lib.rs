@@ -1,5 +1,4 @@
 /// Functionality for creating todo list using terminal user interface.
-
 pub mod config;
 pub mod logger;
 mod todo;
@@ -17,7 +16,7 @@ use std::str::Lines;
 use termion::event::Key;
 use todo::{Priority, ToDo};
 use tui::Window;
-use unicode_width::{UnicodeWidthStr, UnicodeWidthChar};
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 /// Check if save file exists.
 pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
@@ -27,7 +26,7 @@ pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
         Some(arg) => {
             let filename = PathBuf::from(&arg);
             match metadata(&filename) {
-                Ok(_) => return Ok(filename),
+                Ok(_) => Ok(filename),
                 Err(err) => {
                     warn!("Provided save file does not exist: {}", err);
                     Err(())
@@ -50,7 +49,7 @@ pub fn look_for_save(mut args: Args) -> Result<PathBuf, ()> {
                     match metadata(&filename) {
                         Ok(_) => {
                             info!("Found save file.");
-                            Ok(filename.to_path_buf())
+                            Ok(filename)
                         }
                         Err(err) => {
                             warn!("$HOME/.todo/save.txt does not exist: {}", err);
@@ -151,7 +150,7 @@ impl<'a> View<'a> {
             Ok(_) => Ok(buffer),
             Err(_) => {
                 warn!("Unable to read from save file.");
-                return Err(());
+                Err(())
             }
         }
     }
@@ -293,11 +292,13 @@ impl<'a> View<'a> {
                     nchars += chwidth;
                 }
                 Some(Key::Backspace) => {
-                    if entry.len() > 0 {
+                    if !entry.is_empty() {
                         let end = index;
                         while index > 0 {
                             index -= 1;
-                            if entry.is_char_boundary(index) { break; }
+                            if entry.is_char_boundary(index) {
+                                break;
+                            }
                         }
                         let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
                         while chwidth > 0 {
@@ -310,11 +311,13 @@ impl<'a> View<'a> {
                     }
                 }
                 Some(Key::Delete) => {
-                    if entry.len() > 0 && index < entry.len() {
+                    if !entry.is_empty() && index < entry.len() {
                         let mut end = index;
                         while end < entry.len() {
                             end += 1;
-                            if entry.is_char_boundary(end) { break; }
+                            if entry.is_char_boundary(end) {
+                                break;
+                            }
                         }
                         let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
                         while chwidth > 0 {
@@ -330,7 +333,9 @@ impl<'a> View<'a> {
                         let end = index;
                         while index > 0 {
                             index -= 1;
-                            if entry.is_char_boundary(index) { break; }
+                            if entry.is_char_boundary(index) {
+                                break;
+                            }
                         }
                         chars -= UnicodeWidthStr::width(&entry[index..end]);
                     }
@@ -340,7 +345,9 @@ impl<'a> View<'a> {
                         let start = index;
                         while index < entry.len() {
                             index += 1;
-                            if entry.is_char_boundary(index) { break; }
+                            if entry.is_char_boundary(index) {
+                                break;
+                            }
                         }
                         chars += UnicodeWidthStr::width(&entry[start..index]);
                     }
@@ -376,21 +383,19 @@ impl<'a> View<'a> {
         self.window.colour_off();
 
         self.window.colour_on(6, 8);
-        match self.selection {
-            Some(index) => {
-                if index > self.current_task.borrow().sub_tasks.len() - 1 {
-                    warn!("Index larger than it should be.");
-                    self.selection = None;
-                } else {
-                    self.window.mvprintw(4 + index, 1, ">");
-                    self.window.mvprintw(
-                        ymax - 2,
-                        2,
-                        &self.current_task.borrow().sub_tasks[index].borrow().task,
-                    );
-                }
+        if let Some(index) = self.selection {
+            if index > self.current_task.borrow().sub_tasks.len() - 1 {
+                warn!("Index larger than it should be.");
+                self.selection = None;
+            } else {
+                self.window.mvprintw(4 + index, 1, ">");
+                self.window.wrap_print(
+                    ymax - 2,
+                    2,
+                    xmax - 3,
+                    &self.current_task.borrow().sub_tasks[index].borrow().task,
+                );
             }
-            None => (),
         };
         self.window.colour_off();
 
@@ -419,7 +424,7 @@ impl<'a> View<'a> {
                 _ => (),
             };
             self.window
-                .wrap_print(y, 7, xmax / 2 - 8, &format!("{}", elem.borrow().task));
+                .wrap_print(y, 7, xmax / 2 - 8, &elem.borrow().task.to_string());
             self.window.colour_off();
             y += 1;
 
@@ -452,7 +457,7 @@ impl<'a> View<'a> {
                             yy,
                             xmax / 2 + 7,
                             xmax / 2 - 8,
-                            &format!("{}", sub_elem.borrow().task),
+                            &sub_elem.borrow().task.to_string(),
                         );
                         self.window.colour_off();
                         yy += 1;
@@ -465,35 +470,29 @@ impl<'a> View<'a> {
 
     /// Increase the priority of the currently selected task.
     fn increase_priority(&mut self) {
-        match self.selection {
-            Some(index) => {
-                let current = self.current_task.borrow();
-                let mut sub_task = current.sub_tasks[index].borrow_mut();
-                sub_task.priority = match sub_task.priority {
-                    None => Some(Priority::Low),
-                    Some(Priority::Low) => Some(Priority::Medium),
-                    Some(Priority::Medium) => Some(Priority::High),
-                    Some(Priority::High) => Some(Priority::High),
-                };
-            }
-            None => (),
+        if let Some(index) = self.selection {
+            let current = self.current_task.borrow();
+            let mut sub_task = current.sub_tasks[index].borrow_mut();
+            sub_task.priority = match sub_task.priority {
+                None => Some(Priority::Low),
+                Some(Priority::Low) => Some(Priority::Medium),
+                Some(Priority::Medium) => Some(Priority::High),
+                Some(Priority::High) => Some(Priority::High),
+            };
         }
     }
 
     /// Decrease the priority of the currently selected task.
     fn decrease_priority(&mut self) {
-        match self.selection {
-            Some(index) => {
-                let current = self.current_task.borrow();
-                let mut sub_task = current.sub_tasks[index].borrow_mut();
-                sub_task.priority = match sub_task.priority {
-                    None => None,
-                    Some(Priority::Low) => None,
-                    Some(Priority::Medium) => Some(Priority::Low),
-                    Some(Priority::High) => Some(Priority::Medium),
-                };
-            }
-            None => (),
+        if let Some(index) = self.selection {
+            let current = self.current_task.borrow();
+            let mut sub_task = current.sub_tasks[index].borrow_mut();
+            sub_task.priority = match sub_task.priority {
+                None => None,
+                Some(Priority::Low) => None,
+                Some(Priority::Medium) => Some(Priority::Low),
+                Some(Priority::High) => Some(Priority::Medium),
+            };
         }
     }
 
@@ -519,12 +518,9 @@ impl<'a> View<'a> {
     /// Mark task as completed.
     fn complete_task(&mut self) {
         let sub_tasks = &mut self.current_task.borrow_mut().sub_tasks;
-        match self.selection {
-            Some(index) => {
-                let mut sub_task = sub_tasks[index].borrow_mut();
-                sub_task.complete = !sub_task.complete;
-            }
-            None => (),
+        if let Some(index) = self.selection {
+            let mut sub_task = sub_tasks[index].borrow_mut();
+            sub_task.complete = !sub_task.complete;
         }
     }
 
@@ -554,59 +550,52 @@ impl<'a> View<'a> {
 
     /// Focus on currently selected sub-task.
     fn new_focus(&mut self) {
-        let previous_root = self.root.clone();
-        let previous_selection = self.selection.clone();
+        let previous_root = self.root;
+        let previous_selection = self.selection;
         let psub_tasks = Rc::clone(&self.current_task);
         let sub_tasks = &psub_tasks.borrow().sub_tasks;
-        match self.selection {
-            Some(index) => {
-                // Focus on sub-task
-                let sub_task = &sub_tasks[index];
-                self.current_task = Rc::clone(sub_task);
-                self.root = false;
-                self.selection = if self.current_task.borrow().sub_tasks.len() > 0 {
-                    Some(0)
-                } else {
-                    None
-                };
-                self.run();
+        if let Some(index) = self.selection {
+            // Focus on sub-task
+            let sub_task = &sub_tasks[index];
+            self.current_task = Rc::clone(sub_task);
+            self.root = false;
+            self.selection = if !self.current_task.borrow().sub_tasks.is_empty() {
+                Some(0)
+            } else {
+                None
+            };
+            self.run();
 
-                // Return to parent task (unwrap cannot panic here)
-                self.current_task = sub_task.borrow().parent.upgrade().unwrap();
-                self.root = previous_root;
-                self.selection = previous_selection;
-            }
-            None => (),
+            // Return to parent task (unwrap cannot panic here)
+            self.current_task = sub_task.borrow().parent.upgrade().unwrap();
+            self.root = previous_root;
+            self.selection = previous_selection;
         }
     }
 
     /// Edited currently selected sub-task.
     fn edit_task(&mut self) {
-        match self.selection {
-            Some(index) => {
-                let task = self.edit_dialogue("Edit Task:", index);
-                let current_task = self.current_task.borrow_mut();
-                let mut sub_task = current_task.sub_tasks[index].borrow_mut();
-                sub_task.task = task.to_string();
-            }
-            None => (),
+        if let Some(index) = self.selection {
+            let task = self.edit_dialogue("Edit Task:", index);
+            let current_task = self.current_task.borrow_mut();
+            let mut sub_task = current_task.sub_tasks[index].borrow_mut();
+            sub_task.task = task;
         }
     }
 
     /// Move selection cursor.
     fn move_selection(&mut self, ifup: bool) {
-        self.selection = match self.selection {
-            Some(index) => {
-                if ifup {
-                    self.up(index)
-                } else {
-                    self.down(index)
-                }
+        self.selection = if let Some(index) = self.selection {
+            if ifup {
+                self.up(index)
+            } else {
+                self.down(index)
             }
-            None => match self.current_task.borrow().sub_tasks.len() {
+        } else {
+            match self.current_task.borrow().sub_tasks.len() {
                 0 => None,
                 _ => Some(0),
-            },
+            }
         };
     }
 
@@ -659,15 +648,12 @@ impl<'a> View<'a> {
 
     /// Remove selected sub-task.
     fn remove_task(&mut self) {
-        match self.selection {
-            Some(index) => {
-                if self.popup("Are you sure you want to delete this task? y/n") {
-                    let mut current_task = self.current_task.borrow_mut();
-                    current_task.sub_tasks.remove(index);
-                    self.selection = None;
-                }
+        if let Some(index) = self.selection {
+            if self.popup("Are you sure you want to delete this task? y/n") {
+                let mut current_task = self.current_task.borrow_mut();
+                current_task.sub_tasks.remove(index);
+                self.selection = None;
             }
-            None => (),
         }
     }
 
@@ -701,7 +687,7 @@ impl<'a> View<'a> {
 /// Determine number of tabs at start of string line.
 fn tab_num(line: &str) -> usize {
     let mut num = 0;
-    while line[num..].starts_with(" ") {
+    while line[num..].starts_with(' ') {
         num += 1;
     }
     num / 4

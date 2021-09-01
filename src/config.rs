@@ -1,5 +1,4 @@
 /// Configuration functionality for controlling appearance and keybindings.
-
 use dirs::home_dir;
 use log::{info, warn};
 use serde::Deserialize;
@@ -453,7 +452,8 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
             keys.sort,
         ),
         None => (
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+            None,
         ),
     };
 
@@ -474,20 +474,20 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         colour7: colour7.map(|x| color::Rgb(x[0], x[1], x[2])),
         colourfg: colourfg.map(|x| color::Rgb(x[0], x[1], x[2])),
         colourbg: colourbg.map(|x| color::Rgb(x[0], x[1], x[2])),
-        quit: quit.map(|x| Key::Char(x)),
-        back: back.map(|x| Key::Char(x)),
-        save: save.map(|x| Key::Char(x)),
-        add: add.map(|x| Key::Char(x)),
-        edit: edit.map(|x| Key::Char(x)),
-        delete: delete.map(|x| Key::Char(x)),
-        task_up: task_up.map(|x| Key::Char(x)),
-        task_down: task_down.map(|x| Key::Char(x)),
-        up: up.map(|x| Key::Char(x)),
-        down: down.map(|x| Key::Char(x)),
-        focus: focus.map(|x| Key::Char(x)),
-        complete: complete.map(|x| Key::Char(x)),
-        increase: increase.map(|x| Key::Char(x)),
-        decrease: decrease.map(|x| Key::Char(x)),
-        sort: sort.map(|x| Key::Char(x)),
+        quit: quit.map(Key::Char),
+        back: back.map(Key::Char),
+        save: save.map(Key::Char),
+        add: add.map(Key::Char),
+        edit: edit.map(Key::Char),
+        delete: delete.map(Key::Char),
+        task_up: task_up.map(Key::Char),
+        task_down: task_down.map(Key::Char),
+        up: up.map(Key::Char),
+        down: down.map(Key::Char),
+        focus: focus.map(Key::Char),
+        complete: complete.map(Key::Char),
+        increase: increase.map(Key::Char),
+        decrease: decrease.map(Key::Char),
+        sort: sort.map(Key::Char),
     })
 }
