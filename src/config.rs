@@ -12,6 +12,8 @@ struct TomlConfig {
     borders: Option<Borders>,
     colours: Option<Colours>,
     keys: Option<Keys>,
+    save_on_exit: Option<bool>,
+    print_priority: Option<bool>,
 }
 
 /// Layout of [border] section of config.toml file.
@@ -129,6 +131,12 @@ pub struct Config<'a> {
     pub decrease: Key,
     /// Key to sort tasks by priority.
     pub sort: Key,
+
+    /// Miscellaneous settings
+    /// Whether to save on exit
+    pub save_on_exit: bool,
+    /// Whether to print priority explicity
+    pub print_priority: bool,
 }
 
 impl<'a> Config<'a> {
@@ -173,6 +181,10 @@ impl<'a> Config<'a> {
         let decrease = Key::Char('<');
         let sort = Key::Char('r');
 
+        // Misc
+        let save_on_exit = false;
+        let print_priority = false;
+
         Config {
             hline,
             vline,
@@ -205,6 +217,8 @@ impl<'a> Config<'a> {
             increase,
             decrease,
             sort,
+            save_on_exit,
+            print_priority,
         }
     }
 }
@@ -242,6 +256,8 @@ pub struct ConfigBuffer {
     pub increase: Option<Key>,
     pub decrease: Option<Key>,
     pub sort: Option<Key>,
+    pub save_on_exit: Option<bool>,
+    pub print_priority: Option<bool>,
 }
 
 impl ConfigBuffer {
@@ -307,6 +323,8 @@ impl ConfigBuffer {
         let increase = choose_config_val!(increase, "increase key");
         let decrease = choose_config_val!(decrease, "decrease key");
         let sort = choose_config_val!(sort, "sort key");
+        let save_on_exit = choose_config_val!(save_on_exit, "save_on_exit");
+        let print_priority = choose_config_val!(print_priority, "print_priority");
 
         Config {
             hline,
@@ -340,6 +358,8 @@ impl ConfigBuffer {
             increase,
             decrease,
             sort,
+            save_on_exit,
+            print_priority,
         }
     }
 }
@@ -457,6 +477,9 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         ),
     };
 
+    let save_on_exit = toml_config.save_on_exit;
+    let print_priority = toml_config.print_priority;
+
     Some(ConfigBuffer {
         hline,
         vline,
@@ -489,5 +512,7 @@ pub fn check_for_config() -> Option<ConfigBuffer> {
         increase: increase.map(Key::Char),
         decrease: decrease.map(Key::Char),
         sort: sort.map(Key::Char),
+        save_on_exit,
+        print_priority
     })
 }
