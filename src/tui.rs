@@ -204,14 +204,15 @@ impl<'a> Window<'a> {
     }
 
     /// Fill a rectangular region with character ch.
-    pub fn rectangle(&mut self, ch: &str, lower_left: (usize, usize), dimensions: (usize, usize)) {
+    pub fn rectangle(&mut self, ch: char, lower_left: (usize, usize), dimensions: (usize, usize)) {
         let (y, x) = lower_left;
         let (height, width) = dimensions;
+        let mut buf = [0; 4];
+        let c = ch.encode_utf8(&mut buf);
 
-        for j in (y - height + 1)..y {
-            for i in x..(x + width - 1) {
-                self.mvprintw(j, i, ch);
-                self.mvprintw(j, i + width - 1, ch);
+        for j in (y - height + 1)..(y + 1) {
+            for i in x..(x + width) {
+                self.mvprintw(j, i, c);
             }
         }
     }

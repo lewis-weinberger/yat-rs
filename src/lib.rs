@@ -254,27 +254,60 @@ impl<'a> View<'a> {
 
     /// A dialogue box for user interaction.
     fn dialogue(&mut self, prompt: &str, text: &str) -> String {
-        let (ymax, xmax) = self.window.get_max_yx();
-        self.window.border((ymax - 1, 0), (3, xmax));
-        self.window
-            .rectangle(&(' '.to_string())[..], (ymax - 1, 1), (2, xmax - 2));
-        self.window.colour_on(0, 7);
-        self.window.mvprintw(ymax - 2, 2, prompt);
-        self.window.colour_off();
-        self.window.mvprintw(ymax - 2, 3 + prompt.len(), text);
-        self.window.refresh();
-        self.window.show_cursor();
-
         let mut entry = String::from(text);
         let mut index = entry.len(); // byte position
         let mut nchars = UnicodeWidthStr::width(entry.as_str()); // total displayed width
         let mut chars = nchars; // displayed character position
         let plen = UnicodeWidthStr::width(prompt);
-
+        let mut prev_lines: usize = 0;
         loop {
-            // Print entry and set cursor position
-            self.window.mvprintw(ymax - 2, 3 + plen, &entry);
-            self.window.mv(ymax - 2, 3 + (plen + chars));
+            let (ymax, xmax) = self.window.get_max_yx();
+            let max_width = if (xmax - 5 - plen) % 2 == 0 {
+                xmax - 4
+            } else {
+                xmax - 3
+            };
+            let nlines = 1 + (nchars + plen + 1) / max_width;
+            self.window.hide_cursor();
+            self.window
+                .rectangle(' ', (ymax - 2, 1), (nlines, xmax - 2));
+
+            // Print dialogue box
+            if nlines != prev_lines {
+                self.window.border((ymax - 1, 0), (2 + nlines, xmax));
+                prev_lines = nlines;
+            }
+
+            // Print prompt
+            self.window.colour_on(0, 7);
+            self.window.mvprintw(ymax - 1 - nlines, 2, prompt);
+            self.window.colour_off();
+
+            // Print entry
+            let mut ypos = ymax - 1 - nlines;
+            let mut xpos = plen + 3;
+            for (i, ch) in entry.char_indices() {
+                if let Some(w) = UnicodeWidthChar::width(ch) {
+                    if xpos + w > max_width + 2 {
+                        ypos += 1;
+                        xpos = 2;
+                    }
+
+                    let mut j = i + 1;
+                    while !entry.is_char_boundary(j) && j < entry.len() {
+                        j += 1;
+                    }
+
+                    self.window.mvprintw(ypos, xpos, &entry[i..j]);
+                    xpos += w;
+                }
+            }
+
+            // Print cursor position
+            let y = (chars + plen + 1) / max_width;
+            let x = (chars + plen + 1) % max_width;
+            self.window.show_cursor();
+            self.window.mv(ymax - 1 - nlines + y, 2 + x);
             self.window.refresh();
 
             // User input
@@ -300,13 +333,9 @@ impl<'a> View<'a> {
                                 break;
                             }
                         }
-                        let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
-                        while chwidth > 0 {
-                            chars -= 1;
-                            nchars -= 1;
-                            chwidth -= 1;
-                            self.window.mvprintw(ymax - 2, 3 + (plen + nchars), " ");
-                        }
+                        let chwidth = UnicodeWidthStr::width(&entry[index..end]);
+                        chars -= chwidth;
+                        nchars -= chwidth;
                         entry.remove(index);
                     }
                 }
@@ -319,12 +348,7 @@ impl<'a> View<'a> {
                                 break;
                             }
                         }
-                        let mut chwidth = UnicodeWidthStr::width(&entry[index..end]);
-                        while chwidth > 0 {
-                            nchars -= 1;
-                            chwidth -= 1;
-                            self.window.mvprintw(ymax - 2, 3 + (plen + nchars), " ");
-                        }
+                        nchars -= UnicodeWidthStr::width(&entry[index..end]);
                         entry.remove(index);
                     }
                 }
@@ -623,8 +647,7 @@ impl<'a> View<'a> {
     fn popup(&mut self, prompt: &str) -> bool {
         let (ymax, xmax) = self.window.get_max_yx();
         self.window.border((ymax - 1, 0), (3, xmax));
-        self.window
-            .rectangle(&(' '.to_string())[..], (ymax - 1, 1), (2, xmax - 2));
+        self.window.rectangle(' ', (ymax - 2, 1), (1, xmax - 2));
         self.window.colour_on(1, 7);
         self.window.mvprintw(ymax - 2, 2, prompt);
         self.window.colour_off();
